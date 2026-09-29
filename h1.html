@@ -62,7 +62,31 @@ function syncSettingInputs(){document.querySelectorAll('#settings [data-k][data-
 function renderSettings(){['employees','types','systems','holidays'].forEach(function(k){$(k).innerHTML=D.settings[k].map(function(x,i){var move=k==='holidays'?'':'<button class="btn secondary" style="padding:6px 9px" title="Przenieś wyżej" onclick="moveSetting(\''+k+'\','+i+',-1)">↑</button><button class="btn secondary" style="padding:6px 9px" title="Przenieś niżej" onclick="moveSetting(\''+k+'\','+i+',1)">↓</button>';return'<div class="listrow"><input value="'+esc(x)+'" data-k="'+k+'" data-i="'+i+'">'+move+'<button class="btn danger" onclick="rmSetting(\''+k+'\','+i+')">×</button></div>'}).join('')})}
 function addSetting(k){syncSettingInputs();D.settings[k].push('');renderSettings()}
 function rmSetting(k,i){syncSettingInputs();D.settings[k].splice(i,1);renderSettings()}
-function moveSetting(k,i,dir){syncSettingInputs();var j=i+dir;if(j<0||j>=D.settings[k].length)return;var a=D.settings[k][i];D.settings[k][i]=D.settings[k][j];D.settings[k][j]=a;renderSettings()}
+var settingsMoveChain=Promise.resolve(),settingsMovePending=0;
+function moveSetting(k,i,dir){
+  syncSettingInputs();
+  var j=i+dir;
+  if(j<0||j>=D.settings[k].length)return;
+  var a=D.settings[k][i];
+  D.settings[k][i]=D.settings[k][j];
+  D.settings[k][j]=a;
+  renderSettings();
+  var snapshot=JSON.parse(JSON.stringify(D.settings));
+  settingsMovePending++;
+  settingsMoveChain=settingsMoveChain.then(function(){
+    return api('/api/settings',{method:'POST',body:JSON.stringify(snapshot)})
+  }).catch(function(e){
+    alert('Nie udało się zapisać kolejności: '+e.message)
+  }).then(function(){
+    settingsMovePending=Math.max(0,settingsMovePending-1);
+    if(settingsMovePending===0){
+      return api('/api/data').then(function(n){
+        D=n;
+        renderAll()
+      }).catch(function(){})
+    }
+  })
+}
 async function saveSettings(){syncSettingInputs();['employees','types','systems','holidays'].forEach(function(k){D.settings[k]=D.settings[k].map(function(x){return String(x).trim()}).filter(Boolean)});await api('/api/settings',{method:'POST',body:JSON.stringify(D.settings)});D=await api('/api/data');renderAll();alert('Zapisano')}
 function roleName(r){return r==='admin'?'Administrator':r==='supervisor'?'Przełożony':'Tylko podgląd'}
 function renderUsers(){$('ul').innerHTML=(D.users||[]).map(function(u){return'<div class="rank" style="display:flex;justify-content:space-between;gap:8px"><div><b>'+esc(u.username)+'</b> · '+roleName(u.role)+(u.is_main?' <span class="tag">konto główne</span>':'')+'</div><div><button class="btn secondary" onclick="editUser('+u.id+')">Edytuj</button> '+(u.is_main?'':'<button class="btn danger" onclick="deleteUser('+u.id+')">Usuń</button>')+'</div></div>'}).join('')}
@@ -71,7 +95,7 @@ async function deleteUser(id){if(!confirm('Usunąć użytkownika?'))return;await
 async function editUser(id){var u=(D.users||[]).find(function(x){return+x.id===+id});if(!u)return;var username=prompt('Login:',u.username);if(username===null)return;var password=prompt('Nowe hasło (puste = bez zmiany):','');if(password===null)return;var role=prompt('Rola: admin / supervisor / viewer',u.role);if(role===null)return;var b={username:username.trim(),role:role};if(password)b.password=password;await api('/api/user/'+id,{method:'PATCH',body:JSON.stringify(b)});D=await api('/api/data');renderUsers()}
 function exportBackup(){var clean=JSON.parse(JSON.stringify(D));delete clean._online;var p={app:'Clima Gold Ewidencja',hall:HALL,version:3,storage:'online',created_at:new Date().toISOString(),data:clean},b=new Blob([JSON.stringify(p,null,2)],{type:'application/json'});downloadBlob(b,'ClimaGold_'+HALL+'_backup_'+new Date().toISOString().slice(0,19).replace(/[:T]/g,'-')+'.json')}
 function importBackup(){var i=document.createElement('input');i.type='file';i.accept='.json';i.onchange=async function(){try{var f=i.files[0],p=JSON.parse(await f.text());if(!p||p.app!=='Clima Gold Ewidencja'||p.hall!==HALL||!p.data)throw Error('Nieprawidłowa kopia '+HALL);if(!confirm('Przywrócić kopię do bazy online?'))return;await api('/api/restore',{method:'POST',body:JSON.stringify({data:p.data})});D=await api('/api/data');renderAll();alert('Kopia przywrócona')}catch(e){alert(e.message)}};i.click()}
-var refreshing=false;async function refreshData(force){if(!ME||refreshing)return;if(!force&&($('modal').classList.contains('open')||['INPUT','SELECT','TEXTAREA'].indexOf((document.activeElement||{}).tagName)>=0))return;refreshing=true;try{var n=await api('/api/data');if(JSON.stringify(n)!==JSON.stringify(D)){D=n;renderAll()}}catch(e){}finally{refreshing=false}}
+var refreshing=false;async function refreshData(force){if(!ME||refreshing)return;if(!force&&(settingsMovePending>0||$('modal').classList.contains('open')||['INPUT','SELECT','TEXTAREA'].indexOf((document.activeElement||{}).tagName)>=0))return;refreshing=true;try{var n=await api('/api/data');if(JSON.stringify(n)!==JSON.stringify(D)){D=n;renderAll()}}catch(e){}finally{refreshing=false}}
 setInterval(function(){refreshData(false)},5000);boot().catch(function(){});
 
 </script></body></html>
