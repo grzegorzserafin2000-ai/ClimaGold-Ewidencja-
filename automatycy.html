@@ -1,41 +1,106 @@
 <!doctype html><html lang="pl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#1d2832"><title>Clima Gold — Automatycy</title><style>
 :root{--bg:#f4f6f8;--card:#fff;--ink:#17212b;--muted:#68737d;--gold:#c79b36;--dark:#1d2832;--line:#dfe4e8}*{box-sizing:border-box}body{margin:0;font:14px Arial,sans-serif;background:var(--bg);color:var(--ink)}button,input,select,textarea{font:inherit}.login{min-height:100vh;display:grid;place-items:center;background:#1d2832;padding:16px}.login .box{width:min(92vw,390px);background:white;padding:28px;border-radius:18px}.brand{display:flex;align-items:center;gap:9px;font-size:26px;font-weight:800;line-height:1;letter-spacing:-.4px}.brandmark{display:inline-flex;flex-direction:column;gap:3px;width:26px;flex:0 0 26px}.brandmark i{display:block;height:4px;background:#e58a1f;border-radius:999px}.brandmark i:nth-child(1){width:26px}.brandmark i:nth-child(2){width:20px}.brandmark i:nth-child(3){width:14px}.brandtext{display:inline-flex;align-items:baseline}.brand .clima{color:#72777d}.brand .gold{color:#e58a1f}.side .brand .clima{color:#d9dee3}.hint,.muted{color:var(--muted)}.field{display:grid;gap:6px;margin:10px 0}.field input,.field select,.field textarea{padding:10px;border:1px solid var(--line);border-radius:9px;background:white}.btn{border:0;border-radius:9px;padding:10px 14px;background:var(--gold);font-weight:700;cursor:pointer}.btn.secondary{background:#e9edf0}.btn.danger{background:#f4dddd;color:#8b2222}.app{display:none}.side{position:fixed;inset:0 auto 0 0;width:230px;background:var(--dark);color:white;padding:22px 14px;display:flex;flex-direction:column;overflow-y:auto}.side .brand{padding:0 8px 18px}.hall{display:inline-block;background:#ffe7c2;color:#6b4c09;padding:4px 8px;border-radius:99px;margin:0 8px 12px;font-weight:800}.nav button{display:block;width:100%;text-align:left;background:transparent;color:#dfe5ea;border:0;padding:12px;border-radius:8px;margin:3px 0;cursor:pointer}.nav button.active,.nav button:hover{background:#31404d;color:white}.main{margin-left:230px;padding:24px}.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}.kpi{font-size:27px;font-weight:800;margin-top:5px}.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.tablewrap{overflow:auto;background:white;border:1px solid var(--line);border-radius:12px}table{border-collapse:collapse;width:100%;min-width:950px}th,td{padding:10px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}th{background:#f7f8f9;position:sticky;top:0}.view{display:none}.view.active{display:block}.modal{display:none;position:fixed;inset:0;background:#0008;z-index:10;place-items:center;padding:12px}.modal.open{display:grid}.dialog{background:white;border-radius:16px;padding:20px;width:min(95vw,850px);max-height:92vh;overflow:auto}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.empgrid{display:grid;grid-template-columns:2fr 1fr;gap:8px;align-items:end}.empblock{border:1px solid var(--line);border-radius:12px;padding:12px;margin:10px 0;background:#fbfcfd}.empsystems{margin-top:8px}.empsystems .dayrow{grid-template-columns:1.4fr 1fr}.empname{font-weight:800;margin-bottom:4px}.daybox{margin:14px 0;padding:12px;border:1px solid var(--line);border-radius:12px;background:#f9fafb}.dayrow{display:grid;grid-template-columns:1.4fr 1fr;gap:10px;align-items:center;padding:7px 0;border-bottom:1px solid var(--line)}.rank{font-size:15px;padding:10px 0;border-bottom:1px solid var(--line)}.listrow{display:flex;gap:8px;margin:6px 0}.listrow input{flex:1}.tag{padding:3px 8px;border-radius:999px;background:#eee}.mark-yellow{background:#fff4b8}.mark-green{background:#dff4df}.mark-blue{background:#dcecff}.mark-red{background:#ffdede}.mark-orange{background:#ffe7c2}.mark-purple{background:#eadfff}.online{margin-top:auto;background:white;color:var(--ink);border:2px solid #f28c18;border-radius:10px;padding:9px;box-shadow:0 3px 12px #0003;font-size:12px}.online b{color:#2f7d32}.online .statusbuttons{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px}.online .btn{padding:6px 7px;font-size:12px}.error{color:#a11;margin-top:8px}@media(max-width:800px){.side{position:static;width:auto;padding:12px}.side .brand{padding:0 8px 8px}.nav{display:flex;overflow:auto}.nav button{white-space:nowrap}.main{margin:0;padding:12px}.cards{grid-template-columns:1fr 1fr}.grid,.empgrid{grid-template-columns:1fr}.top{align-items:flex-start}.online{margin-top:10px;max-width:none}table{min-width:800px}}
 
-/* v6: przyciski Edytuj/Usuń zawsze widoczne w Ewidencji */
+/* v7: Akcje zawsze widoczne z lewej */
 #entries .tablewrap{position:relative}
-#entries table th:last-child,
-#entries table td:last-child{
+#entries table th.actioncol,
+#entries table td.actioncol{
   position:sticky;
-  right:0;
-  z-index:3;
+  left:0;
+  z-index:4;
   min-width:145px;
   background:#fff;
-  box-shadow:-5px 0 8px rgba(0,0,0,.08)
+  box-shadow:5px 0 8px rgba(0,0,0,.08)
 }
-#entries table th:last-child{
-  z-index:5;
+#entries table th.actioncol{
+  z-index:6;
   background:#f7f8f9
 }
-#entries table td:last-child .btn{
+#entries table td.actioncol .btn{
   padding:8px 10px
 }
-#entries tr.mark-yellow td:last-child{background:#fff4b8}
-#entries tr.mark-green td:last-child{background:#dff4df}
-#entries tr.mark-blue td:last-child{background:#dcecff}
-#entries tr.mark-red td:last-child{background:#ffdede}
-#entries tr.mark-orange td:last-child{background:#ffe7c2}
-#entries tr.mark-purple td:last-child{background:#eadfff}
+#entries tr.mark-yellow td.actioncol{background:#fff4b8}
+#entries tr.mark-green td.actioncol{background:#dff4df}
+#entries tr.mark-blue td.actioncol{background:#dcecff}
+#entries tr.mark-red td.actioncol{background:#ffdede}
+#entries tr.mark-orange td.actioncol{background:#ffe7c2}
+#entries tr.mark-purple td.actioncol{background:#eadfff}
+#entries td:nth-child(5),
+#entries td:nth-child(6),
+#entries td:nth-child(8){
+  white-space:normal;
+  min-width:140px;
+}
 @media(max-width:800px){
-  #entries table th:last-child,
-  #entries table td:last-child{min-width:132px}
-  #entries table td:last-child .btn{padding:7px 8px;font-size:12px}
+  #entries table th.actioncol,
+  #entries table td.actioncol{min-width:132px}
+  #entries table td.actioncol .btn{padding:7px 8px;font-size:12px}
+}
+
+
+/* v8: cała tabela Ewidencji mieści się przy 100% */
+#entries .tablewrap{
+  overflow-x:hidden;
+}
+#entries table{
+  width:100%;
+  min-width:0;
+  table-layout:fixed;
+  font-size:12px;
+}
+#entries th,
+#entries td{
+  padding:7px 6px;
+  white-space:normal;
+  overflow-wrap:anywhere;
+  word-break:normal;
+  vertical-align:top;
+}
+#entries th:nth-child(1),#entries td:nth-child(1){width:13%}
+#entries th:nth-child(2),#entries td:nth-child(2){width:13%}
+#entries th:nth-child(3),#entries td:nth-child(3){width:9%}
+#entries th:nth-child(4),#entries td:nth-child(4){width:11%}
+#entries th:nth-child(5),#entries td:nth-child(5){width:18%}
+#entries th:nth-child(6),#entries td:nth-child(6){width:16%}
+#entries th:nth-child(7),#entries td:nth-child(7){width:8%}
+#entries th:nth-child(8),#entries td:nth-child(8){width:12%}
+
+#entries table th.actioncol,
+#entries table td.actioncol{
+  position:static;
+  min-width:0;
+  box-shadow:none;
+}
+#entries td.actioncol .btn{
+  display:block;
+  width:100%;
+  margin:0 0 5px 0;
+  padding:6px 4px;
+  font-size:11px;
+}
+#entries td.actioncol .btn:last-child{margin-bottom:0}
+
+@media(max-width:1100px){
+  .side{width:205px;padding-left:10px;padding-right:10px}
+  .main{margin-left:205px;padding:16px}
+  #entries table{font-size:11px}
+  #entries th,#entries td{padding:6px 4px}
+  #entries td.actioncol .btn{font-size:10px;padding:5px 3px}
+}
+
+@media(max-width:800px){
+  #entries .tablewrap{overflow-x:auto}
+  #entries table{
+    min-width:760px;
+    font-size:11px;
+  }
 }
 
 </style></head><body>
 <div id="login" class="login"><div class="box"><div class="brand"><span class="brandmark" aria-hidden="true"><i></i><i></i><i></i></span><span class="brandtext"><span class="clima">Clima</span><span class="gold">Gold</span></span></div><h2>Automatycy</h2><div class="hint">Wspólna baza online</div><div class="field"><label>Login</label><input id="lu" value="brygadzista" autocomplete="username"></div><div class="field"><label>Hasło</label><input id="lp" type="password" autocomplete="current-password"></div><button class="btn" onclick="doLogin()">Zaloguj</button><div id="le" class="error"></div></div></div>
 <div id="app" class="app"><aside class="side"><div class="brand"><span class="brandmark" aria-hidden="true"><i></i><i></i><i></i></span><span class="brandtext"><span class="clima">Clima</span><span class="gold">Gold</span></span></div><span class="hall">AUTOMATYCY</span><div class="nav"><button class="active" data-v="dashboard">Dashboard</button><button data-v="entries">Ewidencja</button><button data-v="stats">Statystyki</button><button data-v="ratings">Oceny</button><button data-v="settings">Ustawienia</button><button data-v="users">Użytkownicy</button></div><div class="online"><div><b id="onlineState">ONLINE</b> · <span id="onlineTime">łączenie…</span></div><div class="statusbuttons"><button class="btn secondary" onclick="exportBackup()">Kopia</button><button id="restoreBtn" class="btn secondary" onclick="importBackup()">Przywróć</button><button class="btn secondary" onclick="logout()">Wyloguj</button></div></div></aside><main class="main"><div class="top"><div><h1 id="title">Dashboard</h1><span id="who" class="muted"></span></div><button class="btn secondary" onclick="refreshData(true)">Odśwież</button></div>
 <section id="dashboard" class="view active"><div class="cards"><div class="card"><div class="muted">Wpisy</div><div id="k1" class="kpi">0</div></div><div class="card"><div class="muted">Pracownicy</div><div id="k2" class="kpi">0</div></div><div class="card"><div class="muted">Typy urządzeń</div><div id="k3" class="kpi">0</div></div><div class="card"><div class="muted">W trakcie</div><div id="k4" class="kpi">0</div></div></div><div class="card" style="margin-top:14px"><h3>Ostatnie wpisy</h3><div id="recent"></div></div></section>
-<section id="entries" class="view"><div class="toolbar"><button id="addbtn" class="btn" onclick="openEntry()">+ Dodaj wpis</button><input id="search" placeholder="Szukaj nr, pracownika lub typu" oninput="renderEntries()" style="padding:10px;border:1px solid var(--line);border-radius:9px;min-width:240px"></div><div class="tablewrap"><table><thead><tr><th>Data</th><th>Nr</th><th>Typ</th><th>Pracownicy</th><th>System</th><th>Czas</th><th>Uwagi</th><th>Akcje</th></tr></thead><tbody id="et"></tbody></table></div></section>
+<section id="entries" class="view"><div class="toolbar"><button id="addbtn" class="btn" onclick="openEntry()">+ Dodaj wpis</button><input id="search" placeholder="Szukaj nr, pracownika lub typu" oninput="renderEntries()" style="padding:10px;border:1px solid var(--line);border-radius:9px;min-width:240px"></div><div class="tablewrap"><table><thead><tr><th class="actioncol">Akcje</th><th>Data</th><th>Nr</th><th>Typ</th><th>Pracownicy</th><th>System</th><th>Czas</th><th>Uwagi</th></tr></thead><tbody id="et"></tbody></table></div></section>
 <section id="stats" class="view"><div class="toolbar"><input id="month" type="month" onchange="renderStats()" style="padding:9px"><select id="statType" onchange="renderStats()" style="padding:9px"></select><button class="btn secondary" onclick="exportStatsCSV()">Eksport CSV</button><button class="btn secondary" onclick="exportStatsXLS()">Eksport XLS</button></div><div class="cards"><div class="card"><div class="muted">Zakończone</div><div id="sk1" class="kpi">0</div></div><div class="card"><div class="muted">Łączny czas</div><div id="sk2" class="kpi">0:00</div></div></div><div class="card" style="margin-top:14px"><h3>Top 3 — najkrótszy średni czas</h3><div id="rank"></div></div><div class="tablewrap" style="margin-top:14px"><table><thead><tr><th>Pracownik</th><th>Sztuki</th><th>Łączny czas</th><th>Średnio</th></tr></thead><tbody id="st"></tbody></table></div></section>
 <section id="ratings" class="view"><div class="card"><div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap"><div><h3 style="margin:0">Ocena kompetencji</h3><div class="muted">„-” = ocena nieustalona</div></div><button id="saveratings" class="btn" onclick="saveRatings()">Zapisz oceny</button></div></div><div class="tablewrap" style="margin-top:14px"><table><thead><tr><th>Miejsce</th><th>Pracownik</th><th>Wiedza</th><th>Wydajność</th><th>Dokładność</th><th>Jakość</th><th>Wynik</th></tr></thead><tbody id="rt"></tbody></table></div></section>
 <section id="settings" class="view"><div class="grid"><div class="card"><h3>Pracownicy</h3><div id="employees"></div><button class="btn secondary" onclick="addSetting('employees')">+ Dodaj</button></div><div class="card"><h3>Typy urządzeń</h3><div id="types"></div><button class="btn secondary" onclick="addSetting('types')">+ Dodaj</button></div><div class="card"><h3>Systemy pracy</h3><div id="systems"></div><button class="btn secondary" onclick="addSetting('systems')">+ Dodaj</button></div><div class="card"><h3>Dni wolne / święta</h3><div id="holidays"></div><button class="btn secondary" onclick="addSetting('holidays')">+ Dodaj</button></div></div><button class="btn" style="margin-top:12px" onclick="saveSettings()">Zapisz ustawienia</button></section>
@@ -65,7 +130,7 @@ function empSystemSummary(e,name,i){var u=[];employeeDays(e,name,i).forEach(func
 function systemSummary(e){var a=e.employees||[];if(!a.length){var u=[];(e.day_systems||[]).forEach(function(x){if(x.system&&x.system!=='Wolne / brak pracy'&&u.indexOf(x.system)<0)u.push(x.system)});return u.join(', ')||'—'}if(a.length===1)return empSystemSummary(e,a[0],0);return a.map(function(n,i){return shortName(n)+': '+empSystemSummary(e,n,i)}).join(' | ')}
 function timeSummary(e){if(!e.end_date)return'—';var a=e.employees||[];if(!a.length)return'—';if(a.length===1)return fmt(minsForEmployee(e,a[0],0));return a.map(function(n,i){return shortName(n)+': '+fmt(minsForEmployee(e,n,i))}).join(' | ')}
 function renderAll(){$('k1').textContent=D.entries.length;$('k2').textContent=D.settings.employees.length;$('k3').textContent=D.settings.types.length;$('k4').textContent=D.entries.filter(function(e){return!e.end_date}).length;$('recent').innerHTML=D.entries.slice(0,8).map(function(e){return'<div class="rank"><b>'+esc(e.number)+'</b> · '+esc(e.device_type)+' · '+esc((e.employees||[]).join(', '))+'</div>'}).join('');renderEntries();renderSettings();renderUsers();renderRatings();var old=$('statType').value;$('statType').innerHTML='<option value="">Wszystkie rodzaje</option>'+D.settings.types.map(function(t){return'<option'+(t===old?' selected':'')+'>'+esc(t)+'</option>'}).join('');if(!$('month').value)$('month').value=new Date().toISOString().slice(0,7);renderStats()}
-function renderEntries(){var q=($('search').value||'').toLowerCase();$('et').innerHTML=D.entries.filter(function(e){return((e.number||'')+' '+(e.device_type||'')+' '+(e.employees||[]).join(' ')+' '+(e.notes||'')).toLowerCase().indexOf(q)>=0}).map(function(e){var ac=ME.role==='viewer'?'':'<button class="btn secondary" onclick="openEntry('+e.id+')">Edytuj</button> '+(ME.role==='admin'?'<button class="btn danger" onclick="delEntry('+e.id+')">Usuń</button>':'');return'<tr class="mark-'+(e.mark_color||'none')+'"><td>'+esc(e.start_date)+(e.end_date?' → '+esc(e.end_date):' · w toku')+'</td><td><b>'+esc(e.number)+'</b></td><td>'+esc(e.device_type)+'</td><td>'+esc((e.employees||[]).join(', '))+'</td><td>'+esc(systemSummary(e))+'</td><td>'+esc(timeSummary(e))+'</td><td>'+esc(e.notes)+'</td><td>'+ac+'</td></tr>'}).join('')}
+function renderEntries(){var q=($('search').value||'').toLowerCase();$('et').innerHTML=D.entries.filter(function(e){return((e.number||'')+' '+(e.device_type||'')+' '+(e.employees||[]).join(' ')+' '+(e.notes||'')).toLowerCase().indexOf(q)>=0}).map(function(e){var ac=ME.role==='viewer'?'':'<button class="btn secondary" onclick="openEntry('+e.id+')">Edytuj</button> '+(ME.role==='admin'?'<button class="btn danger" onclick="delEntry('+e.id+')">Usuń</button>':'');return'<tr class="mark-'+(e.mark_color||'none')+'"><td class="actioncol">'+ac+'</td><td>'+esc(e.start_date)+(e.end_date?' → '+esc(e.end_date):' · w toku')+'</td><td><b>'+esc(e.number)+'</b></td><td>'+esc(e.device_type)+'</td><td>'+esc((e.employees||[]).join(', '))+'</td><td>'+esc(systemSummary(e))+'</td><td>'+esc(timeSummary(e))+'</td><td>'+esc(e.notes)+'</td></tr>'}).join('')}
 function opts(a,v){return'<option value=""></option>'+a.map(function(x){return'<option'+(x===v?' selected':'')+'>'+esc(x)+'</option>'}).join('')}
 function currentEmployeeSystems(){return[].slice.call(document.querySelectorAll('.empblock')).map(function(block){var emp=block.querySelector('.emp').value,days=[].slice.call(block.querySelectorAll('.empdayrow')).map(function(r){return{date:r.dataset.date,system:r.querySelector('select').value}});return{employee:emp,days:days}})}
 function renderEmpDayBox(block,existing){var box=block.querySelector('.empsystems'),a=$('sd').value&&new Date($('sd').value+'T00:00'),b=$('ed').value?new Date($('ed').value+'T00:00'):a;if(!a){box.innerHTML='<span class="muted">Ustaw datę rozpoczęcia.</span>';return}if(b<a){box.innerHTML='<span class="error">Błędny zakres dat.</span>';return}var prev={};(existing||[]).forEach(function(x){prev[x.date]=x.system});box.innerHTML='';for(var d=new Date(a);d<=b;d.setDate(d.getDate()+1)){var ds=localDate(d),free=d.getDay()===0||D.settings.holidays.indexOf(ds)>=0,sy=prev[ds]||(free?'Wolne / brak pracy':(D.settings.systems[0]||''));var row=document.createElement('div');row.className='dayrow empdayrow';row.dataset.date=ds;row.innerHTML='<b>'+ds+'</b><select>'+opts(['Wolne / brak pracy'].concat(D.settings.systems),sy)+'</select>';box.appendChild(row)}}
