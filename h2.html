@@ -96,6 +96,65 @@
   }
 }
 
+
+/* v10: poprawka układu na telefonie */
+@media(max-width:800px){
+  html,body{width:100%;max-width:100%;overflow-x:hidden}
+  .side{
+    position:static !important;
+    inset:auto !important;
+    width:100% !important;
+    max-width:100% !important;
+    padding:12px !important;
+  }
+  .main{
+    margin-left:0 !important;
+    width:100% !important;
+    max-width:100% !important;
+    padding:12px !important;
+  }
+  .top{
+    width:100%;
+    gap:10px;
+    align-items:center;
+  }
+  .top h1{font-size:28px;margin:0}
+  .toolbar{width:100%}
+  #entries .toolbar input{
+    width:100%;
+    min-width:0 !important;
+  }
+  #entries .tablewrap{
+    width:100%;
+    max-width:100%;
+    overflow-x:auto !important;
+    -webkit-overflow-scrolling:touch;
+  }
+  #entries table{
+    width:760px !important;
+    min-width:760px !important;
+    table-layout:fixed;
+  }
+  #entries table th.actioncol,
+  #entries table td.actioncol{
+    position:sticky !important;
+    left:0 !important;
+    z-index:4;
+    background:#fff;
+    box-shadow:4px 0 7px rgba(0,0,0,.08) !important;
+  }
+  #entries table th.actioncol{
+    z-index:6;
+    background:#f7f8f9;
+  }
+  #entries tr.mark-yellow td.actioncol{background:#fff4b8}
+  #entries tr.mark-green td.actioncol{background:#dff4df}
+  #entries tr.mark-blue td.actioncol{background:#dcecff}
+  #entries tr.mark-red td.actioncol{background:#ffdede}
+  #entries tr.mark-orange td.actioncol{background:#ffe7c2}
+  #entries tr.mark-purple td.actioncol{background:#eadfff}
+}
+
 </style></head><body>
 <div id="login" class="login"><div class="box"><div class="brand"><span class="brandmark" aria-hidden="true"><i></i><i></i><i></i></span><span class="brandtext"><span class="clima">Clima</span><span class="gold">Gold</span></span></div><h2>Hala H2</h2><div class="hint">Wspólna baza online</div><div class="field"><label>Login</label><input id="lu" value="brygadzista" autocomplete="username"></div><div class="field"><label>Hasło</label><input id="lp" type="password" autocomplete="current-password"></div><button class="btn" onclick="doLogin()">Zaloguj</button><div id="le" class="error"></div></div></div>
 <div id="app" class="app"><aside class="side"><div class="brand"><span class="brandmark" aria-hidden="true"><i></i><i></i><i></i></span><span class="brandtext"><span class="clima">Clima</span><span class="gold">Gold</span></span></div><span class="hall">HALA H2</span><div class="nav"><button class="active" data-v="dashboard">Dashboard</button><button data-v="entries">Ewidencja</button><button data-v="stats">Statystyki</button><button data-v="ratings">Oceny</button><button data-v="settings">Ustawienia</button><button data-v="users">Użytkownicy</button></div><div class="online"><div><b id="onlineState">ONLINE</b> · <span id="onlineTime">łączenie…</span></div><div class="statusbuttons"><button class="btn secondary" onclick="exportBackup()">Kopia</button><button id="restoreBtn" class="btn secondary" onclick="importBackup()">Przywróć</button><button class="btn secondary" onclick="logout()">Wyloguj</button></div></div></aside><main class="main"><div class="top"><div><h1 id="title">Dashboard</h1><span id="who" class="muted"></span></div><button class="btn secondary" onclick="refreshData(true)">Odśwież</button></div>
