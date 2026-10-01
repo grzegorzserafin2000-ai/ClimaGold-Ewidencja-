@@ -1,52 +1,30 @@
 <!doctype html>
 <html lang="pl">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#1d2832">
-  <title>Clima Gold</title>
-  <style>
-    :root{--bg:#1d2832;--card:#fff;--text:#17212b;--muted:#68737d;--gold:#c79b36;--orange:#e58a1f;--light:#e9edf0;--auto:#f0c36b}
-    *{box-sizing:border-box}
-    body{margin:0;min-height:100vh;min-height:100dvh;display:grid;place-items:center;background:var(--bg);font-family:Arial,sans-serif;padding:20px}
-    .box{width:min(92vw,460px);background:var(--card);color:var(--text);border-radius:18px;padding:28px;box-shadow:0 20px 50px #0005}
-    .brand{font-size:30px;font-weight:800;margin-bottom:8px}
-    .clima{color:#72777d}.gold{color:var(--orange)}
-    .muted{color:var(--muted);margin-bottom:18px}
-    button{width:100%;border:0;border-radius:12px;padding:17px 14px;margin:7px 0;font-size:17px;font-weight:800;color:#111;cursor:pointer;-webkit-tap-highlight-color:transparent}
-    .e{background:var(--gold)}.m{background:var(--light)}.a{background:var(--auto)}
-    .status{display:none;margin-top:14px;padding:12px;border-radius:10px;background:#f6f7f8;color:#444;font-size:14px;line-height:1.35}
-    .status.on{display:block}.status.err{display:block;background:#ffe8e8;color:#8a1f1f}
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#1d2832">
+<title>Clima Gold</title>
+<style>
+:root{--bg:#1d2832;--card:#fff;--text:#17212b;--muted:#68737d;--gold:#c79b36;--orange:#e58a1f;--light:#e9edf0;--auto:#f0c36b}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;min-height:100dvh;display:grid;place-items:center;background:var(--bg);font-family:Arial,sans-serif;padding:20px}
+.box{width:min(92vw,460px);background:var(--card);color:var(--text);border-radius:18px;padding:28px;box-shadow:0 20px 50px #0005}
+.brand{font-size:30px;font-weight:800;margin-bottom:8px}.clima{color:#72777d}.gold{color:var(--orange)}
+.muted{color:var(--muted);margin-bottom:18px}
+a{display:block;text-align:center;text-decoration:none;border:0;border-radius:12px;padding:17px 14px;margin:7px 0;font-size:17px;font-weight:800;color:#111;-webkit-tap-highlight-color:transparent}
+.e{background:var(--gold)}.m{background:var(--light)}.a{background:var(--auto)}
+</style>
 </head>
 <body>
-  <main class="box">
-    <div class="brand"><span class="clima">Clima</span><span class="gold">Gold</span></div>
-    <div class="muted">Ewidencja pracy online</div>
-    <button class="e" onclick="openHall('H1')">ELEKTRYCY H1</button>
-    <button class="m" onclick="openHall('M1')">MONTAŻ H1</button>
-    <button class="a" onclick="openHall('AUTO')">AUTOMATYCY</button>
-    <button class="e" onclick="openHall('H2')">ELEKTRYCY H2</button>
-    <button class="m" onclick="openHall('M2')">MONTAŻ H2</button>
-    <div id="status" class="status"></div>
-  </main>
-<script>
-const BASE="https://skcurwlwfoaehmsmzkhq.supabase.co/functions/v1/climagold-prod-export";
-async function openHall(hall){
-  const st=document.getElementById("status");
-  st.className="status on";
-  st.textContent="Wczytuję...";
-  try{
-    const r=await fetch(BASE+"?hall="+encodeURIComponent(hall),{cache:"no-store"});
-    if(!r.ok)throw new Error("HTTP "+r.status);
-    const html=await r.text();
-    if(!html.toLowerCase().includes("<html"))throw new Error("Nieprawidłowa odpowiedź");
-    document.open();document.write(html);document.close();
-  }catch(e){
-    st.className="status err";
-    st.innerHTML='Nie udało się wczytać strony. Spróbuj ponownie.<br><br><button onclick="location.reload()" style="margin:0;padding:10px 14px">ODŚWIEŻ</button>';
-  }
-}
-</script>
+<main class="box">
+  <div class="brand"><span class="clima">Clima</span><span class="gold">Gold</span></div>
+  <div class="muted">Ewidencja pracy online</div>
+  <a class="e" href="./h1.html">ELEKTRYCY H1</a>
+  <a class="m" href="./montaz-h1.html">MONTAŻ H1</a>
+  <a class="a" href="./automatycy.html">AUTOMATYCY</a>
+  <a class="e" href="./h2.html">ELEKTRYCY H2</a>
+  <a class="m" href="./montaz-h2.html">MONTAŻ H2</a>
+</main>
 </body>
 </html>
