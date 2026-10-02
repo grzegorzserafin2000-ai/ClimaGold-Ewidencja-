@@ -222,12 +222,29 @@
 .quickwork .qicon.play{font-size:18px;transform:translateY(-1px)}
 .quickwork .qicon.stop{font-size:27px;transform:translateY(-1px)}
 @media(max-width:800px){.quickwork{grid-template-columns:1fr 1fr}.quickwork .btn{font-size:14px;padding:11px 8px}.quickwork .qicon.play{font-size:17px}.quickwork .qicon.stop{font-size:26px}}
+
+/* v21: statystyki pełne prace / udziały + wykresy */
+.statscharts{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+.statscharts .wide{grid-column:1/-1}
+.chartlegend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin:2px 0 12px}
+.chartlegend i{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-2px;margin-right:4px}
+.lg-full,.barseg.full{background:#e58a1f}
+.lg-part,.barseg.part{background:#8a949d}
+.chartbox{display:flex;flex-direction:column;gap:9px}
+.chartrow{display:grid;grid-template-columns:minmax(115px,170px) 1fr auto;gap:9px;align-items:center}
+.chartname{font-size:12px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.charttrack{height:14px;background:#edf0f2;border-radius:999px;overflow:hidden;display:flex}
+.barseg{height:100%;min-width:0}
+.chartvalue{min-width:110px;text-align:right;font-size:12px;color:var(--muted);white-space:nowrap}
+.chartempty{color:var(--muted);font-size:13px;padding:8px 0}
+@media(max-width:800px){.statscharts{grid-template-columns:1fr}.statscharts .wide{grid-column:auto}.chartrow{grid-template-columns:105px 1fr}.chartvalue{grid-column:2;text-align:left;min-width:0;margin-top:-6px}}
+
 </style></head><body>
 <div id="login" class="login"><div class="box"><button type="button" class="btn secondary" onclick="location.href='./index.html'" style="width:100%;margin:0 0 14px">← Wróć do wyboru działu</button><div class="brand"><span class="brandmark" aria-hidden="true"><i></i><i></i><i></i></span><span class="brandtext"><span class="clima">Clima</span><span class="gold">Gold</span></span></div><h2>Elektrycy H1</h2><div class="hint">Wspólna baza online</div><div class="field"><label>Login</label><input id="lu" value="brygadzista" autocomplete="username"></div><div class="field"><label>Hasło</label><input id="lp" type="password" autocomplete="current-password"></div><button class="btn" onclick="doLogin()">Zaloguj</button><div id="le" class="error"></div></div></div>
 <div id="app" class="app"><aside class="side"><div class="brand"><span class="brandmark" aria-hidden="true"><i></i><i></i><i></i></span><span class="brandtext"><span class="clima">Clima</span><span class="gold">Gold</span></span></div><span class="hall">ELEKTRYCY H1</span><div class="nav"><button class="active" data-v="dashboard">Dashboard</button><button data-v="entries">Ewidencja</button><button data-v="stats">Statystyki</button><button data-v="ratings">Oceny</button><button data-v="settings">Ustawienia</button><button data-v="users">Użytkownicy</button></div><div class="online"><div><b id="onlineState">ONLINE</b> · <span id="onlineTime">łączenie…</span></div><div class="statusbuttons"><button class="btn secondary" onclick="exportBackup()">Kopia</button><button id="restoreBtn" class="btn secondary" onclick="importBackup()">Przywróć</button><button class="btn secondary" onclick="logout()">Wyloguj</button></div></div></aside><main class="main"><div class="top"><div><h1 id="title">Dashboard</h1><span id="who" class="muted"></span></div><button class="btn secondary" onclick="refreshData(true)">Odśwież</button></div>
 <section id="dashboard" class="view active"><div class="cards"><div class="card"><div class="muted">Wpisy</div><div id="k1" class="kpi">0</div></div><div class="card"><div class="muted">Pracownicy</div><div id="k2" class="kpi">0</div></div><div class="card"><div class="muted">Typy urządzeń</div><div id="k3" class="kpi">0</div></div><div class="card"><div class="muted">W trakcie</div><div id="k4" class="kpi">0</div></div></div><div class="card" style="margin-top:14px"><h3>Ostatnie wpisy</h3><div id="recent"></div></div></section>
 <section id="entries" class="view"><div class="toolbar"><button id="addbtn" class="btn" onclick="openEntry()">+ Dodaj wpis</button><input id="entryMonth" type="month" onchange="entryMonthChanged()" style="padding:10px;border:1px solid var(--line);border-radius:9px"><button id="entryAllBtn" class="btn secondary entryfilter active" onclick="setEntryFilter('all')">Wszystkie</button><button id="entryOngoingBtn" class="btn secondary entryfilter" onclick="setEntryFilter('ongoing')">W TOKU</button><input id="search" placeholder="Szukaj nr, pracownika lub typu" oninput="renderEntries()" style="padding:10px;border:1px solid var(--line);border-radius:9px;min-width:240px"></div><div class="tablewrap"><table><thead><tr><th class="actioncol">Akcje</th><th>Data</th><th>Nr</th><th>Typ</th><th>Pracownicy</th><th>System</th><th>Czas</th><th>Uwagi</th></tr></thead><tbody id="et"></tbody></table></div></section>
-<section id="stats" class="view"><div class="toolbar"><input id="month" type="month" onchange="renderStats()" style="padding:9px"><select id="statType" onchange="renderStats()" style="padding:9px"></select><button class="btn secondary" onclick="exportStatsCSV()">Eksport CSV</button><button class="btn secondary" onclick="exportStatsXLS()">Eksport XLS</button></div><div class="cards"><div class="card"><div class="muted">Zakończone prace</div><div id="sk1" class="kpi">0</div></div><div class="card"><div class="muted">Roboczogodziny</div><div id="sk2" class="kpi">0:00</div></div></div><div class="card statsnote" style="margin-top:14px"><h3>Top 3 — najkrótszy średni czas</h3><div id="rank"></div><div class="muted" style="margin-top:10px">Średnia i miejsce liczone są z rzeczywistego czasu pracownika. Przerwy, późniejsze dołączenie, wcześniejsze zakończenie oraz stare korekty są uwzględniane.</div></div><div class="tablewrap" style="margin-top:14px"><table><thead><tr><th>Miejsce</th><th>Pracownik</th><th>Udział w pracach</th><th>Cała praca</th><th>Dołączył później</th><th>Zakończył wcześniej</th><th>Czas przy pracy</th><th>Średnio</th></tr></thead><tbody id="st"></tbody></table></div></section>
+<section id="stats" class="view"><div class="toolbar"><input id="month" type="month" onchange="renderStats()" style="padding:9px"><select id="statType" onchange="renderStats()" style="padding:9px"></select><button class="btn secondary" onclick="exportStatsCSV()">Eksport CSV</button><button class="btn secondary" onclick="exportStatsXLS()">Eksport XLS</button></div><div class="cards"><div class="card"><div class="muted">Zakończone centrale</div><div id="sk1" class="kpi">0</div></div><div class="card"><div class="muted">Roboczogodziny łącznie</div><div id="sk2" class="kpi">0:00</div></div></div><div class="card statsnote" style="margin-top:14px"><h3>Top 3 — najkrótszy średni czas pełnej pracy</h3><div id="rank"></div><div class="muted" style="margin-top:10px"><b>Ranking i średnia liczone są tylko z pełnych prac.</b> Pełna praca = pracownik był przy centrali od początku do końca. Późniejsze dołączenie lub wcześniejsze zakończenie jest udziałem i nie wpływa na miejsce. Przerwy i korekty czasu nadal są uwzględniane.</div></div><div class="statscharts"><div class="card"><h3>Pełne prace / udziały</h3><div class="chartlegend"><span><i class="lg-full"></i> Pełne prace</span><span><i class="lg-part"></i> Udziały</span></div><div id="chartWorkType" class="chartbox"></div></div><div class="card"><h3>Czas pełnych prac / udziałów</h3><div class="chartlegend"><span><i class="lg-full"></i> Czas pełnych</span><span><i class="lg-part"></i> Czas udziałów</span></div><div id="chartTimeMix" class="chartbox"></div></div><div class="card wide"><h3>Średni czas pełnej pracy</h3><div class="muted" style="margin-bottom:10px">Tylko pracownicy mający co najmniej jedną pełną pracę.</div><div id="chartAvgFull" class="chartbox"></div></div></div><div class="tablewrap" style="margin-top:14px"><table><thead><tr><th>Miejsce</th><th>Pracownik</th><th>Wszystkie prace</th><th>Pełne prace</th><th>Udziały</th><th>Dołączył później</th><th>Zakończył wcześniej</th><th>Czas łącznie</th><th>Czas pełnych</th><th>Czas udziałów</th><th>Średnia pełnej pracy</th></tr></thead><tbody id="st"></tbody></table></div></section>
 <section id="ratings" class="view"><div class="card"><div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap"><div><h3 style="margin:0">Ocena kompetencji</h3><div class="muted">„-” = ocena nieustalona</div></div><button id="saveratings" class="btn" onclick="saveRatings()">Zapisz oceny</button></div></div><div class="tablewrap" style="margin-top:14px"><table><thead><tr><th>Miejsce</th><th>Pracownik</th><th>Wiedza i kompetencje</th><th>Wydajność<br>(szybkość pracy)</th><th>Dokładność<br>(bezbłędność)</th><th>Jakość pracy<br>(estetyka)</th><th>Wynik</th></tr></thead><tbody id="rt"></tbody></table></div></section>
 <section id="settings" class="view"><div class="grid"><div class="card"><h3>Pracownicy</h3><div id="employees"></div><button class="btn secondary" onclick="addSetting('employees')">+ Dodaj</button></div><div class="card"><h3>Typy urządzeń</h3><div id="types"></div><button class="btn secondary" onclick="addSetting('types')">+ Dodaj</button></div><div class="card"><h3>Systemy pracy</h3><div id="systems"></div><button class="btn secondary" onclick="addSetting('systems')">+ Dodaj</button></div></div><button class="btn" style="margin-top:12px" onclick="saveSettings()">Zapisz ustawienia</button></section>
 <section id="users" class="view"><div class="card"><h3>Nowe konto</h3><div class="grid"><div class="field"><label>Login</label><input id="nu"></div><div class="field"><label>Hasło</label><input id="np" type="password"></div><div class="field"><label>Rola</label><select id="nr"><option value="supervisor">Przełożony</option><option value="viewer">Tylko podgląd</option><option value="admin">Administrator</option></select></div></div><button class="btn" onclick="addUser()">Dodaj konto</button></div><div class="card" style="margin-top:14px"><div id="ul"></div></div></section>
@@ -463,77 +480,73 @@ function quickEndWork(){var n=quickNowParts();if(!$('sd').value)$('sd').value=n.
 function closeEntry(){$('modal').classList.remove('open')}
 async function saveEntry(){var employees=[],corrections=[],employee_systems=[];document.querySelectorAll('.empblock').forEach(function(block){var emp=block.querySelector('.emp').value;if(!emp)return;employees.push(emp);corrections.push(+block.querySelector('.corr').value||0);employee_systems.push({employee:emp,days:[].slice.call(block.querySelectorAll('.empdayrow')).map(function(r){return{date:r.dataset.date,system:r.querySelector('select').value}}),work_from_date:block.querySelector('.pfromd').value,work_from_time:block.querySelector('.pfromt').value,work_to_date:block.querySelector('.ptod').value,work_to_time:block.querySelector('.ptot').value,pauses:collectPauses(block)})});var x={id:$('eid').value?+$('eid').value:undefined,start_date:$('sd').value,end_date:$('ed').value,device_type:$('dt').value,number:$('no').value,start_time:$('stt').value,end_time:$('ett').value,day_systems:employee_systems[0]?employee_systems[0].days:[],employee_systems:employee_systems,employees:employees,corrections:corrections,notes:$('notes').value,mark_color:$('markcolor').value};if(!x.start_date||!x.start_time){alert('Uzupełnij datę i godzinę rozpoczęcia');return}if((x.end_date&&!x.end_time)||(!x.end_date&&x.end_time)){alert('Uzupełnij jednocześnie datę i godzinę zakończenia');return}if(x.end_date&&x.end_date<x.start_date){alert('Błędna data zakończenia');return}if(HALL==='AUTO'&&x.employees.length>1){alert('Automatycy: można wybrać tylko jednego pracownika.');return}await api('/api/entry',{method:'POST',body:JSON.stringify(x)});D=await api('/api/data');closeEntry();renderAll()}
 async function delEntry(id){if(!confirm('Usunąć wpis?'))return;await api('/api/entry/'+id,{method:'DELETE'});D=await api('/api/data');renderAll()}
+function rankFullRows(rows){
+  var ranked=rows.filter(function(x){return x.full>0}).slice().sort(function(a,b){return a.avgFull-b.avgFull||a.name.localeCompare(b.name,'pl')});
+  var lastAvg=null,place=0;
+  ranked.forEach(function(x){var k=Math.round(x.avgFull*1000)/1000;if(lastAvg===null||k!==lastAvg){place++;lastAvg=k}x.place=place});
+  var places={};ranked.forEach(function(x){places[x.name]=x.place});
+  rows.forEach(function(x){x.place=places[x.name]||null});
+  return rows.slice().sort(function(a,b){if(a.place&&b.place)return a.place-b.place||a.name.localeCompare(b.name,'pl');if(a.place)return-1;if(b.place)return 1;return a.name.localeCompare(b.name,'pl')})
+}
 function statsData(){
   var m=$('month').value,t=$('statType').value,arr=D.entries.filter(function(e){return e.end_date&&(!m||(e.start_date<=m+'-31'&&e.end_date>=m+'-01'))&&(!t||e.device_type===t)}),map={},total=0;
   arr.forEach(function(e){
     (e.employees||[]).forEach(function(name,i){
       if(!name)return;
-      var c=effectiveMins(e,name,i),p=employeeParticipation(e,name,i),joined=!!(p.from_date&&p.from_time),left=!!(p.to_date&&p.to_time);
+      var c=effectiveMins(e,name,i),p=employeeParticipation(e,name,i),joined=!!(p.from_date&&p.from_time),left=!!(p.to_date&&p.to_time),full=!joined&&!left;
       total+=c;
-      if(!map[name])map[name]={count:0,minutes:0,full:0,joined:0,left:0};
-      map[name].count++;map[name].minutes+=c;
-      if(!joined&&!left)map[name].full++;
-      if(joined)map[name].joined++;
-      if(left)map[name].left++
+      if(!map[name])map[name]={count:0,minutes:0,full:0,fullMinutes:0,partial:0,partialMinutes:0,joined:0,left:0};
+      var x=map[name];x.count++;x.minutes+=c;
+      if(full){x.full++;x.fullMinutes+=c}else{x.partial++;x.partialMinutes+=c}
+      if(joined)x.joined++;if(left)x.left++
     })
   });
-  var rows=Object.keys(map).map(function(name){var x=map[name];return{name:name,count:x.count,minutes:x.minutes,avg:x.count?x.minutes/x.count:0,full:x.full,joined:x.joined,left:x.left}}).sort(function(a,b){return a.avg-b.avg||a.name.localeCompare(b.name,'pl')});
-  var lastAvg=null,place=0;
-  rows.forEach(function(x){var k=Math.round(x.avg*1000)/1000;if(lastAvg===null||k!==lastAvg){place++;lastAvg=k}x.place=place});
+  var rows=Object.keys(map).map(function(name){var x=map[name];return{name:name,count:x.count,minutes:x.minutes,full:x.full,fullMinutes:x.fullMinutes,partial:x.partial,partialMinutes:x.partialMinutes,joined:x.joined,left:x.left,avgFull:x.full?x.fullMinutes/x.full:0}});
+  rows=rankFullRows(rows);
   return{entries:arr,rows:rows,total:total,month:m,type:t}
+}
+function renderStackChart(id,rows,aKey,bKey,formatter){
+  var el=$(id);if(!el)return;var max=0;rows.forEach(function(x){max=Math.max(max,(x[aKey]||0)+(x[bKey]||0))});
+  if(!rows.length||max<=0){el.innerHTML='<div class="chartempty">Brak danych</div>';return}
+  el.innerHTML=rows.map(function(x){var a=x[aKey]||0,b=x[bKey]||0,wa=max?a/max*100:0,wb=max?b/max*100:0;return'<div class="chartrow"><div class="chartname" title="'+esc(x.name)+'">'+esc(x.name)+'</div><div class="charttrack"><div class="barseg full" style="width:'+wa.toFixed(2)+'%"></div><div class="barseg part" style="width:'+wb.toFixed(2)+'%"></div></div><div class="chartvalue">'+formatter(a)+' / '+formatter(b)+'</div></div>'}).join('')
+}
+function renderAvgFullChart(rows){
+  var el=$('chartAvgFull');if(!el)return;var a=rows.filter(function(x){return x.full>0}).slice().sort(function(x,y){return x.place-y.place||x.name.localeCompare(y.name,'pl')});var max=0;a.forEach(function(x){max=Math.max(max,x.avgFull||0)});
+  if(!a.length||max<=0){el.innerHTML='<div class="chartempty">Brak pełnych prac w wybranym okresie.</div>';return}
+  el.innerHTML=a.map(function(x){var w=max?x.avgFull/max*100:0;return'<div class="chartrow"><div class="chartname" title="'+esc(x.name)+'">'+x.place+'. '+esc(x.name)+'</div><div class="charttrack"><div class="barseg full" style="width:'+w.toFixed(2)+'%"></div></div><div class="chartvalue">'+fmt(x.avgFull)+' · '+x.full+' pełn'+(x.full===1?'a':'e')+'</div></div>'}).join('')
 }
 function renderStats(){
   var d=statsData();$('sk1').textContent=d.entries.length;$('sk2').textContent=fmt(d.total);
-  var top=d.rows.filter(function(x){return x.place<=3});
-  $('rank').innerHTML=top.map(function(x){return'<div class="rank"><b>'+x.place+'. '+esc(x.name)+'</b> — średnio '+fmt(x.avg)+' ('+x.count+' udział'+(x.count===1?'':'ów')+')</div>'}).join('')||'<span class="muted">Brak danych</span>';
-  $('st').innerHTML=d.rows.map(function(x){return'<tr><td><b>'+x.place+'</b></td><td><b>'+esc(x.name)+'</b></td><td>'+x.count+'</td><td>'+x.full+'</td><td>'+x.joined+'</td><td>'+x.left+'</td><td>'+fmt(x.minutes)+'</td><td><b>'+fmt(x.avg)+'</b></td></tr>'}).join('')
+  var top=d.rows.filter(function(x){return x.place&&x.place<=3});
+  $('rank').innerHTML=top.map(function(x){return'<div class="rank"><b>'+x.place+'. '+esc(x.name)+'</b> — średnio '+fmt(x.avgFull)+' ('+x.full+' pełn'+(x.full===1?'a praca':'e prace')+')</div>'}).join('')||'<span class="muted">Brak pełnych prac do rankingu.</span>';
+  $('st').innerHTML=d.rows.map(function(x){return'<tr><td><b>'+(x.place||'—')+'</b></td><td><b>'+esc(x.name)+'</b></td><td>'+x.count+'</td><td><b>'+x.full+'</b></td><td>'+x.partial+'</td><td>'+x.joined+'</td><td>'+x.left+'</td><td>'+fmt(x.minutes)+'</td><td>'+fmt(x.fullMinutes)+'</td><td>'+fmt(x.partialMinutes)+'</td><td><b>'+(x.full?fmt(x.avgFull):'—')+'</b></td></tr>'}).join('');
+  renderStackChart('chartWorkType',d.rows,'full','partial',function(v){return String(Math.round(v))});renderStackChart('chartTimeMix',d.rows,'fullMinutes','partialMinutes',fmt);renderAvgFullChart(d.rows)
 }
 function csvCell(v){v=String(v==null?'':v);return/[;"\r\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}
 function downloadBlob(blob,name){var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(function(){URL.revokeObjectURL(a.href)},1000)}
 function exportFullStatsData(){
-  var m=$('month').value,arr=D.entries.filter(function(e){return e.end_date&&(!m||(e.start_date<=m+'-31'&&e.end_date>=m+'-01'))}),types=(D.settings.types||[]).slice(),names=(D.settings.employees||[]).slice(),map={},details=[];
+  var m=$('month').value,t=$('statType').value,arr=D.entries.filter(function(e){return e.end_date&&(!m||(e.start_date<=m+'-31'&&e.end_date>=m+'-01'))&&(!t||e.device_type===t)}),types=(D.settings.types||[]).slice(),names=(D.settings.employees||[]).slice(),map={},details=[];
   arr.forEach(function(e){if(e.device_type&&types.indexOf(e.device_type)<0)types.push(e.device_type);(e.employees||[]).forEach(function(n){if(n&&names.indexOf(n)<0)names.push(n)})});
-  names.forEach(function(n){map[n]={name:n,count:0,minutes:0,full:0,joined:0,left:0,byType:{}}});
-  arr.forEach(function(e){
-    var typ=e.device_type||'Bez typu';if(types.indexOf(typ)<0)types.push(typ);
-    (e.employees||[]).forEach(function(name,i){
-      if(!name)return;
-      if(!map[name])map[name]={name:name,count:0,minutes:0,full:0,joined:0,left:0,byType:{}};
-      var corr=((e.corrections||[])[i]||0),c=effectiveMins(e,name,i),x=map[name],p=employeeParticipation(e,name,i),joined=!!(p.from_date&&p.from_time),left=!!(p.to_date&&p.to_time);
-      x.count++;x.minutes+=c;if(!joined&&!left)x.full++;if(joined)x.joined++;if(left)x.left++;
-      if(!x.byType[typ])x.byType[typ]={count:0,minutes:0};x.byType[typ].count++;x.byType[typ].minutes+=c;
-      var systems=[],days=employeeDays(e,name,i);days.forEach(function(d){if(d.system&&d.system!=='Wolne / brak pracy'&&systems.indexOf(d.system)<0)systems.push(d.system)});
-      details.push({start:e.start_date||'',end:e.end_date||'',number:e.number||'',type:typ,employee:name,system:systems.join(', ')||'—',from:(p.from_date&&p.from_time)?p.from_date+' '+p.from_time:'Początek pracy',to:(p.to_date&&p.to_time)?p.to_date+' '+p.to_time:'Koniec pracy',status:participationStatus(e,name,i),minutes:c,correction:corr,notes:e.notes||''})
-    })
-  });
-  var rows=names.map(function(n){return map[n]||{name:n,count:0,minutes:0,full:0,joined:0,left:0,byType:{}}});
-  return{month:m,entries:arr,types:types,rows:rows,details:details}
+  names.forEach(function(n){map[n]={name:n,count:0,minutes:0,full:0,fullMinutes:0,partial:0,partialMinutes:0,joined:0,left:0,byType:{}}});
+  arr.forEach(function(e){var typ=e.device_type||'Bez typu';if(types.indexOf(typ)<0)types.push(typ);(e.employees||[]).forEach(function(name,i){if(!name)return;if(!map[name])map[name]={name:name,count:0,minutes:0,full:0,fullMinutes:0,partial:0,partialMinutes:0,joined:0,left:0,byType:{}};var corr=((e.corrections||[])[i]||0),c=effectiveMins(e,name,i),x=map[name],p=employeeParticipation(e,name,i),joined=!!(p.from_date&&p.from_time),left=!!(p.to_date&&p.to_time),full=!joined&&!left;x.count++;x.minutes+=c;if(full){x.full++;x.fullMinutes+=c}else{x.partial++;x.partialMinutes+=c}if(joined)x.joined++;if(left)x.left++;if(!x.byType[typ])x.byType[typ]={count:0,minutes:0,full:0,fullMinutes:0,partial:0,partialMinutes:0};var y=x.byType[typ];y.count++;y.minutes+=c;if(full){y.full++;y.fullMinutes+=c}else{y.partial++;y.partialMinutes+=c}var systems=[],days=employeeDays(e,name,i);days.forEach(function(d){if(d.system&&d.system!=='Wolne / brak pracy'&&systems.indexOf(d.system)<0)systems.push(d.system)});details.push({start:e.start_date||'',end:e.end_date||'',number:e.number||'',type:typ,employee:name,system:systems.join(', ')||'—',from:(p.from_date&&p.from_time)?p.from_date+' '+p.from_time:'Początek pracy',to:(p.to_date&&p.to_time)?p.to_date+' '+p.to_time:'Koniec pracy',status:participationStatus(e,name,i),classification:full?'Pełna praca':'Udział',minutes:c,correction:corr,notes:e.notes||''})})});
+  var rows=names.map(function(n){var x=map[n]||{name:n,count:0,minutes:0,full:0,fullMinutes:0,partial:0,partialMinutes:0,joined:0,left:0,byType:{}};x.avgFull=x.full?x.fullMinutes/x.full:0;return x});rows=rankFullRows(rows);return{month:m,type:t,entries:arr,types:types,rows:rows,details:details}
 }
 function exportStatsCSV(){
-  var d=exportFullStatsData(),ranked=d.rows.slice().sort(function(a,b){var aa=a.count?a.minutes/a.count:999999,bb=b.count?b.minutes/b.count:999999;return aa-bb||a.name.localeCompare(b.name,'pl')}),last=null,place=0;ranked.forEach(function(x){var av=x.count?x.minutes/x.count:0,k=Math.round(av*1000)/1000;if(last===null||k!==last){place++;last=k}x.place=place;x.avg=av});var dmap={};ranked.forEach(function(x){dmap[x.name]=x});var drows=ranked,head=['Miejsce','Pracownik','Udział w pracach','Cała praca','Dołączył później','Zakończył wcześniej','Czas przy pracy','Średni czas'];
-  d.types.forEach(function(t){head.push(t+' — szt.');head.push(t+' — czas');head.push(t+' — średnio')});
-  var rows=[['Hala',hallName()],['Miesiąc',d.month||'wszystkie'],[],head];
-  drows.forEach(function(x){var r=[x.place,x.name,x.count,x.full,x.joined,x.left,fmt(x.minutes),fmt(x.avg)];d.types.forEach(function(t){var y=x.byType[t]||{count:0,minutes:0};r.push(y.count);r.push(fmt(y.minutes));r.push(y.count?fmt(y.minutes/y.count):'0:00')});rows.push(r)});
-  rows.push([]);rows.push(['SZCZEGÓŁY WPISÓW']);
-  rows.push(['Data rozpoczęcia','Data zakończenia','Nr / oznaczenie','Typ urządzenia','Pracownik','System pracy','Udział od','Udział do','Status udziału','Czas przy pracy','Korekta historyczna (h)','Uwagi']);
-  d.details.forEach(function(x){rows.push([x.start,x.end,x.number,x.type,x.employee,x.system,x.from,x.to,x.status,fmt(x.minutes),x.correction,x.notes])});
-  var csv='\ufeff'+rows.map(function(r){return r.map(csvCell).join(';')}).join('\r\n');
-  downloadBlob(new Blob([csv],{type:'text/csv;charset=utf-8'}),'ClimaGold_'+HALL+'_statystyki_PELNE_'+(d.month||'wszystkie')+'.csv')
+  var d=exportFullStatsData(),head=['Miejsce','Pracownik','Wszystkie prace','Pełne prace','Udziały','Dołączył później','Zakończył wcześniej','Czas łącznie','Czas pełnych prac','Czas udziałów','Średnia pełnej pracy'];
+  d.types.forEach(function(t){head.push(t+' — wszystkie');head.push(t+' — pełne');head.push(t+' — udziały');head.push(t+' — czas łącznie');head.push(t+' — czas pełnych');head.push(t+' — średnia pełnej')});
+  var rows=[['Hala',hallName()],['Miesiąc',d.month||'wszystkie'],['Typ centrali',d.type||'wszystkie'],[],head];
+  d.rows.forEach(function(x){var r=[x.place||'—',x.name,x.count,x.full,x.partial,x.joined,x.left,fmt(x.minutes),fmt(x.fullMinutes),fmt(x.partialMinutes),x.full?fmt(x.avgFull):'—'];d.types.forEach(function(t){var y=x.byType[t]||{count:0,minutes:0,full:0,fullMinutes:0,partial:0};r.push(y.count);r.push(y.full);r.push(y.partial);r.push(fmt(y.minutes));r.push(fmt(y.fullMinutes));r.push(y.full?fmt(y.fullMinutes/y.full):'—')});rows.push(r)});
+  rows.push([]);rows.push(['SZCZEGÓŁY WPISÓW']);rows.push(['Data rozpoczęcia','Data zakończenia','Nr / oznaczenie','Typ urządzenia','Pracownik','System pracy','Udział od','Udział do','Status udziału','Klasyfikacja','Czas przy pracy','Korekta historyczna (h)','Uwagi']);d.details.forEach(function(x){rows.push([x.start,x.end,x.number,x.type,x.employee,x.system,x.from,x.to,x.status,x.classification,fmt(x.minutes),x.correction,x.notes])});
+  var csv='\ufeff'+rows.map(function(r){return r.map(csvCell).join(';')}).join('\r\n');downloadBlob(new Blob([csv],{type:'text/csv;charset=utf-8'}),'ClimaGold_'+HALL+'_statystyki_PELNE_UDZIALY_'+(d.month||'wszystkie')+'.csv')
 }
 function xmlEsc(v){return String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
 function exportStatsXLS(){
   var d=exportFullStatsData(),r='<?xml version="1.0"?><Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">';
   function sheet(name,rows,widths){r+='<Worksheet ss:Name="'+xmlEsc(name)+'"><Table>';(widths||[]).forEach(function(w){r+='<Column ss:AutoFitWidth="1" ss:Width="'+w+'"/>'});rows.forEach(function(a){r+='<Row>'+a.map(function(v){return'<Cell><Data ss:Type="String">'+xmlEsc(v)+'</Data></Cell>'}).join('')+'</Row>'});r+='</Table></Worksheet>'}
-  var ranked=d.rows.slice().sort(function(a,b){var aa=a.count?a.minutes/a.count:999999,bb=b.count?b.minutes/b.count:999999;return aa-bb||a.name.localeCompare(b.name,'pl')}),last=null,place=0;ranked.forEach(function(x){var av=x.count?x.minutes/x.count:0,k=Math.round(av*1000)/1000;if(last===null||k!==last){place++;last=k}x.place=place;x.avg=av});var sum=[['Hala',hallName()],['Miesiąc',d.month||'wszystkie'],[],['Miejsce','Pracownik','Udział w pracach','Cała praca','Dołączył później','Zakończył wcześniej','Czas przy pracy','Średni czas']];
-  ranked.forEach(function(x){sum.push([x.place,x.name,x.count,x.full,x.joined,x.left,fmt(x.minutes),fmt(x.avg)])});
-  var typ=[['Pracownik']];d.types.forEach(function(t){typ[0].push(t+' — szt.');typ[0].push(t+' — czas');typ[0].push(t+' — średnio')});
-  ranked.forEach(function(x){var a=[x.name];d.types.forEach(function(t){var y=x.byType[t]||{count:0,minutes:0};a.push(y.count);a.push(fmt(y.minutes));a.push(y.count?fmt(y.minutes/y.count):'0:00')});typ.push(a)});
-  var det=[['Data rozpoczęcia','Data zakończenia','Nr / oznaczenie','Typ urządzenia','Pracownik','System pracy','Udział od','Udział do','Status udziału','Czas przy pracy','Korekta historyczna (h)','Uwagi']];
-  d.details.forEach(function(x){det.push([x.start,x.end,x.number,x.type,x.employee,x.system,x.from,x.to,x.status,fmt(x.minutes),x.correction,x.notes])});
-  var tw=[180];d.types.forEach(function(){tw.push(85);tw.push(105);tw.push(105)});
-  sheet('Podsumowanie',sum,[70,180,95,85,105,115,105,105]);sheet('Typy central',typ,tw);sheet('Szczegóły',det,[105,105,115,130,185,165,135,135,230,110,95,300]);
-  r+='</Workbook>';
-  downloadBlob(new Blob([r],{type:'application/vnd.ms-excel;charset=utf-8'}),'ClimaGold_'+HALL+'_statystyki_PELNE_'+(d.month||'wszystkie')+'.xls')
+  var sum=[['Hala',hallName()],['Miesiąc',d.month||'wszystkie'],['Typ centrali',d.type||'wszystkie'],[],['Miejsce','Pracownik','Wszystkie prace','Pełne prace','Udziały','Dołączył później','Zakończył wcześniej','Czas łącznie','Czas pełnych','Czas udziałów','Średnia pełnej pracy']];d.rows.forEach(function(x){sum.push([x.place||'—',x.name,x.count,x.full,x.partial,x.joined,x.left,fmt(x.minutes),fmt(x.fullMinutes),fmt(x.partialMinutes),x.full?fmt(x.avgFull):'—'])});
+  var typ=[['Pracownik']];d.types.forEach(function(t){typ[0].push(t+' — wszystkie');typ[0].push(t+' — pełne');typ[0].push(t+' — udziały');typ[0].push(t+' — czas łącznie');typ[0].push(t+' — czas pełnych');typ[0].push(t+' — średnia pełnej')});d.rows.forEach(function(x){var a=[x.name];d.types.forEach(function(t){var y=x.byType[t]||{count:0,minutes:0,full:0,fullMinutes:0,partial:0};a.push(y.count);a.push(y.full);a.push(y.partial);a.push(fmt(y.minutes));a.push(fmt(y.fullMinutes));a.push(y.full?fmt(y.fullMinutes/y.full):'—')});typ.push(a)});
+  var det=[['Data rozpoczęcia','Data zakończenia','Nr / oznaczenie','Typ urządzenia','Pracownik','System pracy','Udział od','Udział do','Status udziału','Klasyfikacja','Czas przy pracy','Korekta historyczna (h)','Uwagi']];d.details.forEach(function(x){det.push([x.start,x.end,x.number,x.type,x.employee,x.system,x.from,x.to,x.status,x.classification,fmt(x.minutes),x.correction,x.notes])});
+  var tw=[180];d.types.forEach(function(){tw.push(80);tw.push(80);tw.push(80);tw.push(100);tw.push(100);tw.push(105)});sheet('Podsumowanie',sum,[70,180,90,85,80,105,115,105,105,105,120]);sheet('Typy central',typ,tw);sheet('Szczegóły',det,[105,105,115,130,185,165,135,135,230,100,110,95,300]);r+='</Workbook>';downloadBlob(new Blob([r],{type:'application/vnd.ms-excel;charset=utf-8'}),'ClimaGold_'+HALL+'_statystyki_PELNE_UDZIALY_'+(d.month||'wszystkie')+'.xls')
 }
 function scoreRating(r){var a=[r.knowledge,r.efficiency,r.accuracy,r.quality];if(a.some(function(v){return!v||v==='-'}))return null;return a.reduce(function(s,v){return s+(parseInt(v)||0)},0)}
 function ratingOpts(v){return['-','1/5','2/5','3/5','4/5','5/5'].map(function(x){return'<option'+(x===v?' selected':'')+'>'+x+'</option>'}).join('')}
