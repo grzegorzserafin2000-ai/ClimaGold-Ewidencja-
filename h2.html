@@ -226,6 +226,7 @@
 /* v21: statystyki pełne prace / udziały + wykresy */
 /* v22: START/KONIEC — własne SVG, identyczne na telefonie i komputerze */
 /* FINAL v24: odświeżona grafika Dashboardu i nawigacji */
+/* FINAL v25: górny pasek do pełnej szerokości */
 .statscharts{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
 .statscharts .wide{grid-column:1/-1}
 .chartlegend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin:2px 0 12px}
@@ -452,6 +453,21 @@ th{background:#f6f8f9}
   }
   .dash-row .dash-cell:nth-child(4){grid-column:2;grid-row:1 / span 2;text-align:right}
   .dash-row .dash-open{grid-column:2;grid-row:3}
+}
+
+
+/* FINAL v25: górny pasek zawsze do prawej krawędzi */
+@media(min-width:801px){
+  .top{
+    width:calc(100vw - 220px);
+    box-sizing:border-box;
+  }
+}
+@media(max-width:800px){
+  .top{
+    width:calc(100% + 24px) !important;
+    box-sizing:border-box;
+  }
 }
 
 </style></head><body>
