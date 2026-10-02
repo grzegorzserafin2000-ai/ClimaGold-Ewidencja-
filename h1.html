@@ -218,12 +218,14 @@
 /* v20: filtr W TOKU w Ewidencji */
 .quickwork{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0 16px}
 .quickwork .btn{display:flex;align-items:center;justify-content:center;gap:8px;font-size:15px;padding:12px}
-.quickwork .qicon{display:inline-block;line-height:1;font-weight:900}
-.quickwork .qicon.play{font-size:18px;transform:translateY(-1px)}
-.quickwork .qicon.stop{font-size:27px;transform:translateY(-1px)}
-@media(max-width:800px){.quickwork{grid-template-columns:1fr 1fr}.quickwork .btn{font-size:14px;padding:11px 8px}.quickwork .qicon.play{font-size:17px}.quickwork .qicon.stop{font-size:26px}}
+.quickwork .qicon{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;flex:0 0 24px;color:#222}
+.quickwork .qicon svg{display:block;width:22px;height:22px;fill:currentColor}
+.quickwork .qicon.stop svg{width:23px;height:23px}
+@media(max-width:800px){.quickwork{grid-template-columns:1fr 1fr}.quickwork .btn{font-size:14px;padding:11px 8px}.quickwork .qicon{width:23px;height:23px;flex-basis:23px}.quickwork .qicon svg{width:21px;height:21px}.quickwork .qicon.stop svg{width:22px;height:22px}}
 
 /* v21: statystyki pełne prace / udziały + wykresy */
+/* v22: START/KONIEC — własne SVG, identyczne na telefonie i komputerze */
+/* FINAL v24: odświeżona grafika Dashboardu i nawigacji */
 .statscharts{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
 .statscharts .wide{grid-column:1/-1}
 .chartlegend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin:2px 0 12px}
@@ -239,17 +241,294 @@
 .chartempty{color:var(--muted);font-size:13px;padding:8px 0}
 @media(max-width:800px){.statscharts{grid-template-columns:1fr}.statscharts .wide{grid-column:auto}.chartrow{grid-template-columns:105px 1fr}.chartvalue{grid-column:2;text-align:left;min-width:0;margin-top:-6px}}
 
+
+/* TEST v23 — odświeżona grafika aplikacji */
+:root{--orange:#f97316;--orange2:#e58a1f;--navy:#202c38;--softbg:#f3f5f7}
+body{background:var(--softbg)}
+.side{
+  width:220px;
+  background:linear-gradient(180deg,#202d39 0%,#263746 100%);
+  padding:20px 12px;
+  box-shadow:6px 0 25px rgba(20,31,42,.08)
+}
+.side .brand{padding:2px 8px 14px;font-size:28px}
+.side .brand .clima{color:#f2f4f6}
+.side .brand .gold{color:#ff7a21}
+.side .hall{
+  margin:0 8px 16px;
+  background:#f0f2f4;
+  color:#4d5862;
+  border-radius:7px;
+  font-size:11px;
+  letter-spacing:.3px;
+  padding:6px 9px
+}
+.nav{display:grid;gap:5px}
+.nav button{
+  display:flex;
+  align-items:center;
+  gap:11px;
+  padding:12px 13px;
+  margin:0;
+  border-radius:10px;
+  color:#eef2f5;
+  font-weight:700;
+  transition:.15s ease
+}
+.nav button:hover{background:#344757}
+.nav button.active{
+  background:linear-gradient(135deg,#ff7a21,#f26817);
+  color:#fff;
+  box-shadow:0 6px 16px rgba(242,104,23,.25)
+}
+.navsvg{display:inline-flex;width:22px;height:22px;flex:0 0 22px}
+.navsvg svg{width:100%;height:100%;fill:currentColor}
+.online{
+  background:rgba(255,255,255,.07);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:12px;
+  padding:10px;
+  font-size:11px
+}
+.online .btn{font-size:11px;padding:7px 8px}
+.main{margin-left:220px;padding:0 24px 28px;min-height:100vh}
+.top{
+  margin:0 -24px 22px;
+  padding:16px 24px;
+  background:#fff;
+  border-bottom:1px solid #e8ebee;
+  box-shadow:0 3px 12px rgba(29,40,50,.04);
+  position:sticky;
+  top:0;
+  z-index:8
+}
+.top h1{font-size:20px;margin:0 0 2px}
+.top .btn{border-radius:10px}
+.card,.tablewrap,.dash-panel,.dash-kpi-card{
+  box-shadow:0 6px 20px rgba(29,40,50,.055)
+}
+.btn{background:var(--orange);color:#fff;border-radius:10px}
+.btn.secondary{background:#e9edf0;color:#26313a}
+.dash-hero{display:flex;align-items:end;justify-content:space-between;gap:14px;margin-bottom:18px}
+.dash-hero h2{font-size:31px;line-height:1;margin:3px 0 8px}
+.dash-eyebrow{font-size:11px;font-weight:800;color:#8a949d;text-transform:uppercase;letter-spacing:.8px}
+.dash-add{min-width:135px}
+.dash-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:16px}
+.dash-kpi-card{
+  appearance:none;
+  border:1px solid #e5e9ed;
+  background:#fff;
+  border-radius:15px;
+  padding:15px;
+  display:flex;
+  align-items:center;
+  gap:13px;
+  text-align:left;
+  cursor:pointer;
+  color:#17212b;
+  min-height:120px
+}
+.dash-kpi-card:hover{transform:translateY(-1px);border-color:#d7dde2}
+.dash-kpi-icon{
+  width:47px;height:47px;border-radius:50%;
+  display:grid;place-items:center;flex:0 0 47px
+}
+.dash-kpi-icon svg{width:25px;height:25px;fill:#fff}
+.dash-kpi-icon.orange{background:linear-gradient(135deg,#ff7a21,#f26817)}
+.dash-kpi-icon.green{background:#46a85a}
+.dash-kpi-icon.slate{background:#566575}
+.dash-kpi-copy{display:flex;flex-direction:column;min-width:0}
+.dash-kpi-label{font-size:11px;font-weight:800;color:#66717b;line-height:1.2;margin-bottom:2px}
+.dash-kpi-copy strong{font-size:28px;line-height:1.15}
+.dash-kpi-copy small{font-size:11px;color:#5575a1;margin-top:5px}
+.dash-panel{
+  background:#fff;border:1px solid #e4e8eb;border-radius:15px;padding:0;margin:14px 0;overflow:hidden
+}
+.dash-panel-head{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:15px 17px;border-bottom:1px solid #edf0f2
+}
+.dash-panel-head>div{display:flex;align-items:center;gap:9px}
+.dash-panel-head h3{margin:0;font-size:17px}
+.status-dot{width:28px;height:28px;border-radius:50%;display:inline-block;position:relative}
+.status-dot.ongoing{background:#ff7a21}
+.status-dot.done{background:#46a85a}
+.status-dot::after{content:"";position:absolute;inset:8px;border:3px solid #fff;border-radius:50%}
+.status-dot.done::after{border:0;width:11px;height:6px;inset:8px 0 0 8px;border-left:3px solid #fff;border-bottom:3px solid #fff;transform:rotate(-45deg)}
+.dash-link{border:0;background:transparent;color:#5575a1;font-weight:700;cursor:pointer;font-size:12px}
+.dash-list{width:100%}
+.dash-row{
+  display:grid;
+  grid-template-columns:minmax(120px,1fr) minmax(110px,1fr) minmax(180px,1.5fr) minmax(120px,1fr) auto;
+  align-items:center;gap:10px;padding:12px 17px;border-bottom:1px solid #edf0f2
+}
+.dash-row:last-child{border-bottom:0}
+.dash-row.head{background:#f7f8f9;color:#5f6a74;font-size:11px;font-weight:800;padding-top:10px;padding-bottom:10px}
+.dash-row:not(.head):hover{background:#fbfcfd}
+.dash-cell{min-width:0}
+.dash-cell b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dash-cell small{color:#7a858e}
+.dash-open{
+  border:0;background:#eef1f3;color:#33404b;font-weight:800;
+  border-radius:8px;padding:8px 10px;cursor:pointer
+}
+.dash-empty{padding:24px;text-align:center;color:#7a858e}
+.tablewrap{border-radius:14px;border-color:#e4e8eb}
+th{background:#f6f8f9}
+.card{border-radius:15px;border-color:#e4e8eb}
+@media(max-width:1180px){
+  .dash-kpis{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:800px){
+  body{padding-bottom:74px}
+  .side{
+    position:static !important;
+    width:100% !important;
+    padding:10px 12px !important;
+    display:grid;
+    grid-template-columns:1fr auto;
+    align-items:center;
+    gap:6px
+  }
+  .side .brand{padding:0 4px;font-size:24px}
+  .side .hall{margin:0 4px;padding:5px 7px;grid-column:2}
+  .side .online{grid-column:1 / -1;margin:4px 0 0;padding:8px}
+  .nav{
+    position:fixed;
+    left:0;right:0;bottom:0;
+    z-index:30;
+    background:#fff;
+    border-top:1px solid #dfe4e8;
+    display:flex;
+    overflow-x:auto;
+    gap:0;
+    padding:5px 5px calc(5px + env(safe-area-inset-bottom));
+    box-shadow:0 -6px 22px rgba(20,31,42,.09)
+  }
+  .nav button{
+    min-width:82px;
+    flex:1 0 82px;
+    color:#4f5a64;
+    background:transparent;
+    flex-direction:column;
+    gap:2px;
+    padding:6px 5px 5px;
+    font-size:10px;
+    border-radius:8px
+  }
+  .nav button.active{background:#fff3ea;color:#f26817;box-shadow:none}
+  .navsvg{width:21px;height:21px;flex-basis:21px}
+  .main{margin-left:0 !important;padding:0 12px 18px !important}
+  .top{
+    margin:0 -12px 15px;
+    padding:10px 12px;
+    position:static
+  }
+  .top h1{font-size:18px}
+  .dash-hero{align-items:center;margin-bottom:13px}
+  .dash-hero h2{font-size:27px}
+  .dash-hero .muted,.dash-eyebrow{display:none}
+  .dash-add{min-width:auto;padding:9px 11px}
+  .dash-kpis{grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+  .dash-kpi-card{padding:11px;min-height:96px;gap:9px}
+  .dash-kpi-icon{width:36px;height:36px;flex-basis:36px}
+  .dash-kpi-icon svg{width:20px;height:20px}
+  .dash-kpi-label{font-size:9px}
+  .dash-kpi-copy strong{font-size:22px}
+  .dash-kpi-copy small{display:none}
+  .dash-panel{margin:10px 0}
+  .dash-panel-head{padding:12px}
+  .dash-panel-head h3{font-size:15px}
+  .dash-link{font-size:11px}
+  .dash-row.head{display:none}
+  .dash-row{
+    grid-template-columns:1fr auto;
+    padding:11px 12px;
+    gap:4px 10px
+  }
+  .dash-row .dash-cell:nth-child(2),
+  .dash-row .dash-cell:nth-child(3){
+    grid-column:1
+  }
+  .dash-row .dash-cell:nth-child(4){grid-column:2;grid-row:1 / span 2;text-align:right}
+  .dash-row .dash-open{grid-column:2;grid-row:3}
+}
+
 </style></head><body>
 <div id="login" class="login"><div class="box"><button type="button" class="btn secondary" onclick="location.href='./index.html'" style="width:100%;margin:0 0 14px">← Wróć do wyboru działu</button><div class="brand"><span class="brandmark" aria-hidden="true"><i></i><i></i><i></i></span><span class="brandtext"><span class="clima">Clima</span><span class="gold">Gold</span></span></div><h2>Elektrycy H1</h2><div class="hint">Wspólna baza online</div><div class="field"><label>Login</label><input id="lu" value="brygadzista" autocomplete="username"></div><div class="field"><label>Hasło</label><input id="lp" type="password" autocomplete="current-password"></div><button class="btn" onclick="doLogin()">Zaloguj</button><div id="le" class="error"></div></div></div>
-<div id="app" class="app"><aside class="side"><div class="brand"><span class="brandmark" aria-hidden="true"><i></i><i></i><i></i></span><span class="brandtext"><span class="clima">Clima</span><span class="gold">Gold</span></span></div><span class="hall">ELEKTRYCY H1</span><div class="nav"><button class="active" data-v="dashboard">Dashboard</button><button data-v="entries">Ewidencja</button><button data-v="stats">Statystyki</button><button data-v="ratings">Oceny</button><button data-v="settings">Ustawienia</button><button data-v="users">Użytkownicy</button></div><div class="online"><div><b id="onlineState">ONLINE</b> · <span id="onlineTime">łączenie…</span></div><div class="statusbuttons"><button class="btn secondary" onclick="exportBackup()">Kopia</button><button id="restoreBtn" class="btn secondary" onclick="importBackup()">Przywróć</button><button class="btn secondary" onclick="logout()">Wyloguj</button></div></div></aside><main class="main"><div class="top"><div><h1 id="title">Dashboard</h1><span id="who" class="muted"></span></div><button class="btn secondary" onclick="refreshData(true)">Odśwież</button></div>
-<section id="dashboard" class="view active"><div class="cards"><div class="card"><div class="muted">Wpisy</div><div id="k1" class="kpi">0</div></div><div class="card"><div class="muted">Pracownicy</div><div id="k2" class="kpi">0</div></div><div class="card"><div class="muted">Typy urządzeń</div><div id="k3" class="kpi">0</div></div><div class="card"><div class="muted">W trakcie</div><div id="k4" class="kpi">0</div></div></div><div class="card" style="margin-top:14px"><h3>Ostatnie wpisy</h3><div id="recent"></div></div></section>
+<div id="app" class="app"><aside class="side"><div class="brand"><span class="brandmark" aria-hidden="true"><i></i><i></i><i></i></span><span class="brandtext"><span class="clima">Clima</span><span class="gold">Gold</span></span></div><span class="hall">ELEKTRYCY H1</span><div class="nav">
+  <button class="active" data-v="dashboard"><span class="navsvg"><svg viewBox="0 0 24 24"><path d="M3 11 12 3l9 8v10h-6v-6H9v6H3V11Z"/></svg></span><span>Dashboard</span></button>
+  <button data-v="entries"><span class="navsvg"><svg viewBox="0 0 24 24"><path d="M6 2h12v3h3v17H3V5h3V2Zm2 3h8V4H8v1Zm-2 4v10h12V9H6Z"/></svg></span><span>Ewidencja</span></button>
+  <button data-v="stats"><span class="navsvg"><svg viewBox="0 0 24 24"><path d="M4 20h3V10H4v10Zm6 0h4V4h-4v16Zm7 0h3V7h-3v13Z"/></svg></span><span>Statystyki</span></button>
+  <button data-v="ratings"><span class="navsvg"><svg viewBox="0 0 24 24"><path d="m12 2 3 6 6.5 1-4.8 4.7 1.1 6.6L12 17.2l-5.8 3.1 1.1-6.6L2.5 9 9 8l3-6Z"/></svg></span><span>Oceny</span></button>
+  <button data-v="settings"><span class="navsvg"><svg viewBox="0 0 24 24"><path d="M19.4 13a7.8 7.8 0 0 0 0-2l2-1.6-2-3.5-2.5 1a7.8 7.8 0 0 0-1.7-1L14.8 3h-4l-.4 2.9a7.8 7.8 0 0 0-1.7 1l-2.5-1-2 3.5 2 1.6a7.8 7.8 0 0 0 0 2l-2 1.6 2 3.5 2.5-1a7.8 7.8 0 0 0 1.7 1l.4 2.9h4l.4-2.9a7.8 7.8 0 0 0 1.7-1l2.5 1 2-3.5-2-1.6ZM12.8 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8Z"/></svg></span><span>Ustawienia</span></button>
+  <button data-v="users"><span class="navsvg"><svg viewBox="0 0 24 24"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm-9 9c0-4.4 4-7 9-7s9 2.6 9 7H3Z"/></svg></span><span>Użytkownicy</span></button>
+</div><div class="online"><div><b id="onlineState">ONLINE</b> · <span id="onlineTime">łączenie…</span></div><div class="statusbuttons"><button class="btn secondary" onclick="exportBackup()">Kopia</button><button id="restoreBtn" class="btn secondary" onclick="importBackup()">Przywróć</button><button class="btn secondary" onclick="logout()">Wyloguj</button></div></div></aside><main class="main"><div class="top"><div><h1 id="title">Dashboard</h1><span id="who" class="muted"></span></div><button class="btn secondary" onclick="refreshData(true)">Odśwież</button></div>
+
+<section id="dashboard" class="view active">
+  <div class="dash-hero">
+    <div>
+      <div class="dash-eyebrow">ClimaGold · podgląd działu</div>
+      <h2>Dashboard</h2>
+      <div class="muted">Szybki podgląd najważniejszych informacji</div>
+    </div>
+    <button class="btn dash-add" onclick="openEntry()">+ Dodaj wpis</button>
+  </div>
+
+  <div class="dash-kpis">
+    <button class="dash-kpi-card" onclick="dashboardShowOngoing()">
+      <span class="dash-kpi-icon orange">
+        <svg viewBox="0 0 24 24"><path d="M21.7 5.3a5.8 5.8 0 0 1-7.4 7L7.1 19.5a2 2 0 1 1-2.8-2.8l7.2-7.2a5.8 5.8 0 0 1 7-7.4L15.1 5.5l2.5 2.5 4.1-2.7Z"/></svg>
+      </span>
+      <span class="dash-kpi-copy"><span class="dash-kpi-label">W TOKU</span><strong id="dkOngoing">0</strong><small>Przejdź do ewidencji</small></span>
+    </button>
+
+    <button class="dash-kpi-card" onclick="dashboardShowToday()">
+      <span class="dash-kpi-icon green">
+        <svg viewBox="0 0 24 24"><path d="M9.2 16.4 4.8 12l-2 2 6.4 6.4L21.8 7.8l-2-2L9.2 16.4Z"/></svg>
+      </span>
+      <span class="dash-kpi-copy"><span class="dash-kpi-label">ZAKOŃCZONE DZISIAJ</span><strong id="dkDoneToday">0</strong><small>Zobacz ewidencję</small></span>
+    </button>
+
+    <button class="dash-kpi-card" onclick="dashboardShowOngoing()">
+      <span class="dash-kpi-icon slate">
+        <svg viewBox="0 0 24 24"><path d="M16 11c1.7 0 3-1.3 3-3s-1.3-3-3-3-3 1.3-3 3 1.3 3 3 3ZM8 11c1.7 0 3-1.3 3-3S9.7 5 8 5 5 6.3 5 8s1.3 3 3 3Zm8 2c-2 0-6 1-6 3v3h12v-3c0-2-4-3-6-3ZM8 13c-2.3 0-7 1.2-7 3.5V19h7v-3c0-.8.3-1.6.9-2.3-.3-.4-.6-.7-.9-.7Z"/></svg>
+      </span>
+      <span class="dash-kpi-copy"><span class="dash-kpi-label">PRACOWNICY PRZY PRACY</span><strong id="dkWorkers">0</strong><small>Aktualnie przy centralach</small></span>
+    </button>
+
+    <button class="dash-kpi-card" onclick="dashboardShowAll()">
+      <span class="dash-kpi-icon slate">
+        <svg viewBox="0 0 24 24"><path d="M4 3h16a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Zm1 5h14V6H5v2Zm0 5h14v-2H5v2Zm0 5h9v-2H5v2Z"/></svg>
+      </span>
+      <span class="dash-kpi-copy"><span class="dash-kpi-label">WSZYSTKIE WPISY</span><strong id="dkAll">0</strong><small>Pełna ewidencja</small></span>
+    </button>
+  </div>
+
+  <div class="dash-panel">
+    <div class="dash-panel-head">
+      <div><span class="status-dot ongoing"></span><h3>Centrale w toku <span id="dkOngoingTitle">(0)</span></h3></div>
+      <button class="dash-link" onclick="dashboardShowOngoing()">Pokaż wszystkie →</button>
+    </div>
+    <div id="dashOngoingList" class="dash-list"></div>
+  </div>
+
+  <div class="dash-panel">
+    <div class="dash-panel-head">
+      <div><span class="status-dot done"></span><h3>Ostatnio zakończone</h3></div>
+      <button class="dash-link" onclick="dashboardShowAll()">Ewidencja →</button>
+    </div>
+    <div id="dashRecentDone" class="dash-list"></div>
+  </div>
+</section>
+
 <section id="entries" class="view"><div class="toolbar"><button id="addbtn" class="btn" onclick="openEntry()">+ Dodaj wpis</button><input id="entryMonth" type="month" onchange="entryMonthChanged()" style="padding:10px;border:1px solid var(--line);border-radius:9px"><button id="entryAllBtn" class="btn secondary entryfilter active" onclick="setEntryFilter('all')">Wszystkie</button><button id="entryOngoingBtn" class="btn secondary entryfilter" onclick="setEntryFilter('ongoing')">W TOKU</button><input id="search" placeholder="Szukaj nr, pracownika lub typu" oninput="renderEntries()" style="padding:10px;border:1px solid var(--line);border-radius:9px;min-width:240px"></div><div class="tablewrap"><table><thead><tr><th class="actioncol">Akcje</th><th>Data</th><th>Nr</th><th>Typ</th><th>Pracownicy</th><th>System</th><th>Czas</th><th>Uwagi</th></tr></thead><tbody id="et"></tbody></table></div></section>
 <section id="stats" class="view"><div class="toolbar"><input id="month" type="month" onchange="renderStats()" style="padding:9px"><select id="statType" onchange="renderStats()" style="padding:9px"></select><button class="btn secondary" onclick="exportStatsCSV()">Eksport CSV</button><button class="btn secondary" onclick="exportStatsXLS()">Eksport XLS</button></div><div class="cards"><div class="card"><div class="muted">Zakończone centrale</div><div id="sk1" class="kpi">0</div></div><div class="card"><div class="muted">Roboczogodziny łącznie</div><div id="sk2" class="kpi">0:00</div></div></div><div class="card statsnote" style="margin-top:14px"><h3>Top 3 — najkrótszy średni czas pełnej pracy</h3><div id="rank"></div><div class="muted" style="margin-top:10px"><b>Ranking i średnia liczone są tylko z pełnych prac.</b> Pełna praca = pracownik był przy centrali od początku do końca. Późniejsze dołączenie lub wcześniejsze zakończenie jest udziałem i nie wpływa na miejsce. Przerwy i korekty czasu nadal są uwzględniane.</div></div><div class="statscharts"><div class="card"><h3>Pełne prace / udziały</h3><div class="chartlegend"><span><i class="lg-full"></i> Pełne prace</span><span><i class="lg-part"></i> Udziały</span></div><div id="chartWorkType" class="chartbox"></div></div><div class="card"><h3>Czas pełnych prac / udziałów</h3><div class="chartlegend"><span><i class="lg-full"></i> Czas pełnych</span><span><i class="lg-part"></i> Czas udziałów</span></div><div id="chartTimeMix" class="chartbox"></div></div><div class="card wide"><h3>Średni czas pełnej pracy</h3><div class="muted" style="margin-bottom:10px">Tylko pracownicy mający co najmniej jedną pełną pracę.</div><div id="chartAvgFull" class="chartbox"></div></div></div><div class="tablewrap" style="margin-top:14px"><table><thead><tr><th>Miejsce</th><th>Pracownik</th><th>Wszystkie prace</th><th>Pełne prace</th><th>Udziały</th><th>Dołączył później</th><th>Zakończył wcześniej</th><th>Czas łącznie</th><th>Czas pełnych</th><th>Czas udziałów</th><th>Średnia pełnej pracy</th></tr></thead><tbody id="st"></tbody></table></div></section>
 <section id="ratings" class="view"><div class="card"><div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap"><div><h3 style="margin:0">Ocena kompetencji</h3><div class="muted">„-” = ocena nieustalona</div></div><button id="saveratings" class="btn" onclick="saveRatings()">Zapisz oceny</button></div></div><div class="tablewrap" style="margin-top:14px"><table><thead><tr><th>Miejsce</th><th>Pracownik</th><th>Wiedza i kompetencje</th><th>Wydajność<br>(szybkość pracy)</th><th>Dokładność<br>(bezbłędność)</th><th>Jakość pracy<br>(estetyka)</th><th>Wynik</th></tr></thead><tbody id="rt"></tbody></table></div></section>
 <section id="settings" class="view"><div class="grid"><div class="card"><h3>Pracownicy</h3><div id="employees"></div><button class="btn secondary" onclick="addSetting('employees')">+ Dodaj</button></div><div class="card"><h3>Typy urządzeń</h3><div id="types"></div><button class="btn secondary" onclick="addSetting('types')">+ Dodaj</button></div><div class="card"><h3>Systemy pracy</h3><div id="systems"></div><button class="btn secondary" onclick="addSetting('systems')">+ Dodaj</button></div></div><button class="btn" style="margin-top:12px" onclick="saveSettings()">Zapisz ustawienia</button></section>
 <section id="users" class="view"><div class="card"><h3>Nowe konto</h3><div class="grid"><div class="field"><label>Login</label><input id="nu"></div><div class="field"><label>Hasło</label><input id="np" type="password"></div><div class="field"><label>Rola</label><select id="nr"><option value="supervisor">Przełożony</option><option value="viewer">Tylko podgląd</option><option value="admin">Administrator</option></select></div></div><button class="btn" onclick="addUser()">Dodaj konto</button></div><div class="card" style="margin-top:14px"><div id="ul"></div></div></section>
 </main></div>
-<div id="modal" class="modal"><div class="dialog"><h2>Wpis ewidencji</h2><input id="eid" type="hidden"><div class="quickwork"><button type="button" class="btn" onclick="quickStartWork()"><span class="qicon play">▶</span><span>START PRACY</span></button><button type="button" class="btn secondary" onclick="quickEndWork()"><span class="qicon stop">⏹️</span><span>KONIEC PRACY</span></button></div><div class="grid"><div class="field"><label>Nr / oznaczenie</label><input id="no"></div><div class="field"><label>Data rozpoczęcia</label><input id="sd" type="date"></div><div class="field"><label>Data zakończenia</label><input id="ed" type="date"></div><div class="field"><label>Typ urządzenia</label><select id="dt"></select></div><div class="field"><label>Godzina rozpoczęcia</label><input id="stt" type="time"></div><div class="field"><label>Godzina zakończenia</label><input id="ett" type="time"></div></div><h3>Pracownicy, system pracy i korekty czasu</h3><div class="muted">Każdy pracownik ma własny system pracy na każdy dzień wpisu.</div><div id="empsel"></div><div class="grid"><div class="field"><label>Kolor</label><select id="markcolor"><option value="">Bez koloru</option><option value="yellow">Żółty</option><option value="green">Zielony</option><option value="blue">Niebieski</option><option value="red">Czerwony</option><option value="orange">Pomarańczowy</option><option value="purple">Fioletowy</option></select></div><div class="field" style="grid-column:span 2"><label>Uwagi</label><textarea id="notes"></textarea></div></div><div class="toolbar"><button class="btn" onclick="saveEntry()">Zapisz</button><button class="btn secondary" onclick="closeEntry()">Anuluj</button></div></div></div>
+<div id="modal" class="modal"><div class="dialog"><h2>Wpis ewidencji</h2><input id="eid" type="hidden"><div class="quickwork"><button type="button" class="btn" onclick="quickStartWork()"><span class="qicon play" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5.2v13.6c0 .9 1 1.4 1.7.9l9.6-6.8c.7-.5.7-1.5 0-2L9.7 4.1C9 3.6 8 4.1 8 5.2Z"/></svg></span><span>START PRACY</span></button><button type="button" class="btn secondary" onclick="quickEndWork()"><span class="qicon stop" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="1.8"/></svg></span><span>KONIEC PRACY</span></button></div><div class="grid"><div class="field"><label>Nr / oznaczenie</label><input id="no"></div><div class="field"><label>Data rozpoczęcia</label><input id="sd" type="date"></div><div class="field"><label>Data zakończenia</label><input id="ed" type="date"></div><div class="field"><label>Typ urządzenia</label><select id="dt"></select></div><div class="field"><label>Godzina rozpoczęcia</label><input id="stt" type="time"></div><div class="field"><label>Godzina zakończenia</label><input id="ett" type="time"></div></div><h3>Pracownicy, system pracy i korekty czasu</h3><div class="muted">Każdy pracownik ma własny system pracy na każdy dzień wpisu.</div><div id="empsel"></div><div class="grid"><div class="field"><label>Kolor</label><select id="markcolor"><option value="">Bez koloru</option><option value="yellow">Żółty</option><option value="green">Zielony</option><option value="blue">Niebieski</option><option value="red">Czerwony</option><option value="orange">Pomarańczowy</option><option value="purple">Fioletowy</option></select></div><div class="field" style="grid-column:span 2"><label>Uwagi</label><textarea id="notes"></textarea></div></div><div class="toolbar"><button class="btn" onclick="saveEntry()">Zapisz</button><button class="btn secondary" onclick="closeEntry()">Anuluj</button></div></div></div>
 <script>
 
 var HALL='H1',D=null,ME=null,TOKEN_KEY='cg_'+HALL+'_token',MAX_EMP=HALL==='AUTO'?1:4;
@@ -351,7 +630,76 @@ function shortName(n){return String(n||'').trim().split(/\s+/)[0]||'Pracownik'}
 function empSystemSummary(e,name,i){var u=[];employeeDays(e,name,i).forEach(function(x){if(x.system&&x.system!=='Wolne / brak pracy'&&u.indexOf(x.system)<0)u.push(x.system)});return u.join(', ')||'Wolne'}
 function systemSummary(e){var a=e.employees||[];if(!a.length){var u=[];(e.day_systems||[]).forEach(function(x){if(x.system&&x.system!=='Wolne / brak pracy'&&u.indexOf(x.system)<0)u.push(x.system)});return u.join(', ')||'—'}if(a.length===1)return empSystemSummary(e,a[0],0);return a.map(function(n,i){return shortName(n)+': '+empSystemSummary(e,n,i)}).join(' | ')}
 function timeSummary(e){if(!e.end_date)return'—';var a=e.employees||[];if(!a.length)return'—';if(a.length===1)return fmt(effectiveMins(e,a[0],0));return a.map(function(n,i){return shortName(n)+': '+fmt(effectiveMins(e,n,i))}).join(' | ')}
-function renderAll(){$('k1').textContent=D.entries.length;$('k2').textContent=D.settings.employees.length;$('k3').textContent=D.settings.types.length;$('k4').textContent=D.entries.filter(function(e){return!e.end_date}).length;$('recent').innerHTML=D.entries.slice(0,8).map(function(e){return'<div class="rank"><b>'+esc(e.number)+'</b> · '+esc(e.device_type)+' · '+esc((e.employees||[]).join(', '))+'</div>'}).join('');renderEntries();renderSettings();renderUsers();renderRatings();var old=$('statType').value;$('statType').innerHTML='<option value="">Wszystkie rodzaje</option>'+D.settings.types.map(function(t){return'<option'+(t===old?' selected':'')+'>'+esc(t)+'</option>'}).join('');if(!$('month').value)$('month').value=new Date().toISOString().slice(0,7);renderStats()}
+
+function dashboardGoView(view){
+  var b=document.querySelector('.nav button[data-v="'+view+'"]');
+  if(b)b.click()
+}
+function dashboardShowOngoing(){dashboardGoView('entries');setEntryFilter('ongoing')}
+function dashboardShowAll(){dashboardGoView('entries');setEntryFilter('all')}
+function dashboardShowToday(){
+  dashboardGoView('entries');
+  ENTRY_FILTER='all';
+  if($('entryMonth'))$('entryMonth').value=localDate(new Date()).slice(0,7);
+  syncEntryFilterButtons();renderEntries()
+}
+function dashElapsed(e){
+  if(!e.start_date)return'—';
+  var st=new Date(e.start_date+'T'+(e.start_time||'00:00')+':00');
+  if(isNaN(st))return'—';
+  var end=e.end_date?new Date(e.end_date+'T'+(e.end_time||'00:00')+':00'):new Date();
+  var mins=Math.max(0,Math.round((end-st)/60000));
+  var d=Math.floor(mins/1440),h=Math.floor((mins%1440)/60),m=mins%60;
+  if(d)return d+' d '+h+' h';
+  if(h)return h+' h '+String(m).padStart(2,'0')+' min';
+  return m+' min'
+}
+function renderDashboardTest(){
+  var entries=D.entries||[],today=localDate(new Date());
+  var ongoing=entries.filter(function(e){return !e.end_date});
+  var doneToday=entries.filter(function(e){return e.end_date===today});
+  var workers={};
+  ongoing.forEach(function(e){
+    (e.employees||[]).forEach(function(n,i){
+      if(!n)return;
+      var p=employeeParticipation(e,n,i);
+      if(!(p.to_date&&p.to_time))workers[n]=1
+    })
+  });
+  if($('dkOngoing'))$('dkOngoing').textContent=ongoing.length;
+  if($('dkOngoingTitle'))$('dkOngoingTitle').textContent='('+ongoing.length+')';
+  if($('dkDoneToday'))$('dkDoneToday').textContent=doneToday.length;
+  if($('dkWorkers'))$('dkWorkers').textContent=Object.keys(workers).length;
+  if($('dkAll'))$('dkAll').textContent=entries.length;
+
+  var head='<div class="dash-row head"><div>Nr centrali</div><div>Typ urządzenia</div><div>Pracownicy</div><div>Czas</div><div>Akcja</div></div>';
+  if($('dashOngoingList')){
+    $('dashOngoingList').innerHTML=ongoing.length?head+ongoing.map(function(e){
+      return'<div class="dash-row">'+
+        '<div class="dash-cell"><b>'+esc(e.number||'Bez numeru')+'</b><small>'+esc(e.start_date||'')+' '+esc(e.start_time||'')+'</small></div>'+
+        '<div class="dash-cell">'+esc(e.device_type||'—')+'</div>'+
+        '<div class="dash-cell">'+esc((e.employees||[]).join(', ')||'—')+'</div>'+
+        '<div class="dash-cell"><b>'+dashElapsed(e)+'</b></div>'+
+        '<button class="dash-open" onclick="openEntry('+e.id+')">Otwórz</button>'+
+      '</div>'
+    }).join(''):'<div class="dash-empty">Brak central w toku.</div>'
+  }
+
+  var done=entries.filter(function(e){return !!e.end_date}).slice(0,6);
+  if($('dashRecentDone')){
+    $('dashRecentDone').innerHTML=done.length?head+done.map(function(e){
+      return'<div class="dash-row">'+
+        '<div class="dash-cell"><b>'+esc(e.number||'Bez numeru')+'</b><small>'+esc(e.end_date||'')+' '+esc(e.end_time||'')+'</small></div>'+
+        '<div class="dash-cell">'+esc(e.device_type||'—')+'</div>'+
+        '<div class="dash-cell">'+esc((e.employees||[]).join(', ')||'—')+'</div>'+
+        '<div class="dash-cell"><b>'+esc(timeSummary(e))+'</b></div>'+
+        '<button class="dash-open" onclick="openEntry('+e.id+')">Otwórz</button>'+
+      '</div>'
+    }).join(''):'<div class="dash-empty">Brak zakończonych wpisów.</div>'
+  }
+}
+
+function renderAll(){renderDashboardTest();renderEntries();renderSettings();renderUsers();renderRatings();var old=$('statType').value;$('statType').innerHTML='<option value="">Wszystkie rodzaje</option>'+D.settings.types.map(function(t){return'<option'+(t===old?' selected':'')+'>'+esc(t)+'</option>'}).join('');if(!$('month').value)$('month').value=new Date().toISOString().slice(0,7);renderStats()}
 var ENTRY_FILTER='all';
 function syncEntryFilterButtons(){
   if($('entryAllBtn'))$('entryAllBtn').classList.toggle('active',ENTRY_FILTER==='all');
