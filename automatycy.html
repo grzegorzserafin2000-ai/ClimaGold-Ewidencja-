@@ -594,6 +594,7 @@ th{background:#f6f8f9}
 /* FINAL v46: Montaż H1 ma wskazówkę o przypisaniu pracowników do Grup A/B */
 /* FINAL v47: wybór dzisiejszego systemu pracy na Dashboardzie */
 /* FINAL v48: bez Grup A/B + status ZATRZYMANA + filtry ZATRZYMANE/ZAKOŃCZONE */
+/* FINAL v49: przycisk ZAKOŃCZONE bez licznika */
 .groupbadge{display:flex;align-items:center;min-height:39px;padding:9px 11px;border:1px solid #e6c66f;border-radius:9px;background:#fff7d8;color:#60470d;font-weight:800}
 .groupassign{display:grid;grid-template-columns:minmax(180px,1fr) 130px;gap:10px;align-items:center;padding:7px 0;border-bottom:1px solid var(--line)}
 .groupassign:last-child{border-bottom:0}
@@ -1695,7 +1696,7 @@ function syncEntryFilterButtons(){
   }
   if($('entryDoneBtn')){
     $('entryDoneBtn').classList.toggle('active',ENTRY_FILTER==='done');
-    $('entryDoneBtn').textContent='ZAKOŃCZONE ('+done+')';
+    $('entryDoneBtn').textContent='ZAKOŃCZONE';
   }
 }
 function setEntryFilter(mode){
