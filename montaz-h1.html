@@ -1594,7 +1594,7 @@ function selectedSections(){
 }
 function renderSectionChoices(values){
   var holder=$('sectionSelections'),all=getSections();
-  values=(values||[]).filter(function(x,i,a){return x&&all.indexOf(x)!==-1&&a.indexOf(x)===i});
+  values=(values||[]).filter(function(x,i,a){return (!x&&i===a.length-1)||(x&&all.indexOf(x)!==-1&&a.indexOf(x)===i)});
   if(!values.length)values=[''];
   holder.innerHTML=values.map(function(v,i){
     var used=values.filter(function(x,j){return x&&i!==j});
