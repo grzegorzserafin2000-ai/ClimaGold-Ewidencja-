@@ -595,6 +595,13 @@ th{background:#f6f8f9}
 /* FINAL v47: wybór dzisiejszego systemu pracy na Dashboardzie */
 /* FINAL v48: bez Grup A/B + status ZATRZYMANA + filtry ZATRZYMANE/ZAKOŃCZONE */
 /* FINAL v49: przycisk ZAKOŃCZONE bez licznika */
+/* FINAL v50: Statystyki — ranking ilości i testowy wynik ilość + czas bez norm */
+/* FINAL v51: Statystyki podzielone na kategorie z osobnymi tabelami i wykresami */
+/* FINAL v52: Podsumowanie / Czas / Ilość i czas — bez punktów, z ikonami i ilustracjami */
+/* FINAL v53: prostszy opis Ilość i czas + zawsze widoczny Zapisz na telefonie */
+/* FINAL v54: tylko aktywny przycisk Ilość/Czas jest pomarańczowy */
+/* FINAL v55: statystyki Podsumowanie / Wydajność / Udziały */
+/* FINAL v56: wspólne wstrzymanie/wznowienie centrali + oceny sortują się od razu */
 .groupbadge{display:flex;align-items:center;min-height:39px;padding:9px 11px;border:1px solid #e6c66f;border-radius:9px;background:#fff7d8;color:#60470d;font-weight:800}
 .groupassign{display:grid;grid-template-columns:minmax(180px,1fr) 130px;gap:10px;align-items:center;padding:7px 0;border-bottom:1px solid var(--line)}
 .groupassign:last-child{border-bottom:0}
@@ -899,6 +906,331 @@ th{background:#f6f8f9}
   #todaySystemSelect{width:100%}
 }
 
+
+/* FINAL v50: dodatkowe rankingi ilość + czas bez norm */
+.statscompare{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:14px;
+  margin-top:14px;
+}
+.statscomparecard h3{margin-top:0}
+.statrankrow{
+  display:grid;
+  grid-template-columns:auto minmax(120px,1fr) auto;
+  gap:9px;
+  align-items:center;
+  padding:10px 0;
+  border-bottom:1px solid var(--line);
+}
+.statrankrow:last-child{border-bottom:0}
+.statrankplace{
+  width:28px;height:28px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  background:#fff3df;
+  color:#9a570b;
+  font-weight:900;
+}
+.statrankname{
+  font-weight:800;
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.statrankvalue{text-align:right;white-space:nowrap;font-weight:900}
+.statranksub{display:block;font-size:11px;color:var(--muted);font-weight:600;margin-top:2px}
+.statssmallnote{margin-top:10px;line-height:1.4;font-size:12px}
+.combinedscore{
+  display:inline-block;
+  min-width:58px;
+  text-align:center;
+  padding:5px 8px;
+  border-radius:999px;
+  background:#fff0d9;
+  color:#8c5009;
+}
+@media(max-width:800px){
+  .statscompare{grid-template-columns:1fr}
+}
+
+
+/* FINAL v51: Statystyki podzielone na kategorie */
+.statstabbar{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin:14px 0;
+}
+.statstab{
+  appearance:none;
+  border:1px solid var(--line);
+  background:#fff;
+  color:var(--ink);
+  border-radius:11px;
+  padding:10px 16px;
+  font-weight:800;
+  cursor:pointer;
+}
+.statstab.active{
+  background:#e58a1f;
+  border-color:#e58a1f;
+  color:#fff;
+}
+.statspanel{display:none}
+.statspanel.active{display:block}
+.statscharts.onecol{grid-template-columns:1fr}
+#stats .tablewrap table{min-width:720px}
+@media(max-width:650px){
+  .statstabbar{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+  }
+  .statstab{width:100%;padding:10px 8px}
+}
+
+
+/* FINAL v52: proste i czytelne kategorie statystyk */
+.statstabbar{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:10px;
+  margin:14px 0;
+}
+.statstab{
+  appearance:none;
+  border:1px solid var(--line);
+  background:#fff;
+  color:var(--ink);
+  border-radius:14px;
+  padding:11px 12px;
+  font-weight:800;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  text-align:left;
+  min-height:68px;
+  box-shadow:0 1px 3px rgba(0,0,0,.03);
+  transition:.16s ease;
+}
+.statstab:hover{transform:translateY(-1px);border-color:#e4a650}
+.statstab.active{
+  background:#fff5e8;
+  border-color:#e58a1f;
+  box-shadow:0 0 0 2px rgba(229,138,31,.10);
+}
+.statstabicon{
+  width:40px;height:40px;flex:0 0 40px;
+  display:flex;align-items:center;justify-content:center;
+  border-radius:11px;background:#f2f4f7;color:#485466;
+}
+.statstabicon svg{width:24px;height:24px;fill:currentColor}
+.statstab.active .statstabicon{background:#e58a1f;color:#fff}
+.statstab b{display:block;font-size:14px}
+.statstab small{display:block;color:var(--muted);font-size:11px;margin-top:2px}
+.statspanel{display:none}
+.statspanel.active{display:block}
+
+.statcategoryhero{
+  min-height:138px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:18px;
+  padding:18px 20px;
+  border-radius:16px;
+  background:linear-gradient(135deg,#fff8ed,#ffffff);
+  border:1px solid #efd7b6;
+  margin-bottom:14px;
+  overflow:hidden;
+}
+.statcategoryhero h3{margin:2px 0 6px;font-size:19px}
+.statcategoryhero p{margin:0;color:var(--muted);max-width:650px;line-height:1.45}
+.statcategoryeyebrow{font-size:11px;font-weight:900;letter-spacing:.08em;color:#b7650a}
+.statillustration{
+  width:180px;height:110px;flex:0 0 180px;
+  color:#e58a1f;
+  opacity:.9;
+}
+.statillustration svg{width:100%;height:100%}
+.statillustration rect,.statillustration circle{fill:#ffe6bf;stroke:#d77d18;stroke-width:3}
+.statillustration path{stroke:#d77d18}
+.statillustration.time circle{fill:#fff0d8}
+.statillustration.qty rect{fill:#fff0d8}
+.statillustration.qty circle{fill:#ffe0ae}
+
+.statkpicard{display:flex;align-items:center;gap:12px}
+.statkpiicon{
+  width:42px;height:42px;border-radius:12px;
+  background:#fff1db;color:#a75d09;
+  display:flex;align-items:center;justify-content:center;
+  font-size:21px;font-weight:900;
+}
+.statscharts.onecol{grid-template-columns:1fr}
+
+.qtytimecontrols{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:14px;
+}
+.qtytimecontrols h3{margin:0 0 3px}
+.qtytimebuttons{display:flex;gap:8px;flex-wrap:wrap}
+.qtysort.active{
+  background:#e58a1f !important;
+  border-color:#e58a1f !important;
+  color:#fff !important;
+}
+.qtytimebest{
+  display:inline-block;
+  padding:4px 8px;
+  border-radius:999px;
+  background:#edf8f0;
+  color:#28713d;
+  font-size:11px;
+  font-weight:900;
+  margin-left:6px;
+}
+.statssmallnote{margin-top:10px;line-height:1.45;font-size:12px}
+
+@media(max-width:800px){
+  .statcategoryhero{min-height:0}
+  .statillustration{width:130px;height:80px;flex-basis:130px}
+  .qtytimecontrols{align-items:stretch;flex-direction:column}
+}
+@media(max-width:620px){
+  .statstabbar{grid-template-columns:1fr}
+  .statstab{min-height:58px}
+  .statillustration{display:none}
+  .statcategoryhero{padding:15px}
+  .qtytimebuttons{display:grid;grid-template-columns:1fr 1fr}
+  .qtytimebuttons .btn{width:100%}
+}
+
+
+/* FINAL v53: stały i czytelny zapis wpisu na telefonie */
+.entryactions{
+  display:flex;
+  gap:8px;
+  margin-top:14px;
+}
+.entryactions .btn{
+  min-height:44px;
+}
+@media(max-width:760px){
+  .dialog{
+    width:min(100%,850px);
+    max-height:calc(100dvh - 12px);
+    padding:16px 16px 0;
+    border-radius:14px;
+  }
+  .entryactions{
+    position:sticky;
+    z-index:30;
+    bottom:0;
+    margin:16px -16px 0;
+    padding:10px 16px calc(10px + env(safe-area-inset-bottom));
+    background:rgba(255,255,255,.98);
+    border-top:1px solid var(--line);
+    box-shadow:0 -8px 20px rgba(15,23,42,.08);
+  }
+  .entryactions .btn{
+    flex:1 1 0;
+    min-width:0;
+    min-height:50px;
+    font-size:16px;
+    font-weight:900;
+  }
+  .entrysavebtn{
+    background:#e58a1f !important;
+    color:#fff !important;
+    border-color:#e58a1f !important;
+  }
+}
+
+
+/* FINAL v54: jednoznaczny stan przycisków Ilość i czas */
+.qtysort{
+  background:#fff !important;
+  color:var(--ink) !important;
+  border:1px solid var(--line) !important;
+  box-shadow:none !important;
+}
+.qtysort.active{
+  background:#e58a1f !important;
+  color:#fff !important;
+  border-color:#e58a1f !important;
+  box-shadow:0 0 0 2px rgba(229,138,31,.12) !important;
+}
+
+
+/* FINAL v55: Podsumowanie / Wydajność / Udziały */
+.statillustration.participation circle{
+  fill:#fff0d8;
+  stroke:#d77d18;
+  stroke-width:3;
+}
+.statillustration.participation path{stroke:#d77d18}
+
+
+/* FINAL v56: wspólne wstrzymanie centrali + dynamiczny ranking ocen */
+.centralpausebox{
+  margin:0 0 16px;
+  padding:12px;
+  border:1px solid #e3e7ea;
+  border-radius:12px;
+  background:#fff8ee;
+}
+.centralpausehead{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:9px;
+}
+.centralpausehead b{font-size:14px}
+#centralPauseStatus{font-size:12px;margin-top:2px}
+.centralpausebuttons{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+}
+.centralpause-stop{
+  border-color:#d98622 !important;
+  color:#8b4d08 !important;
+  background:#fff0da !important;
+}
+.centralpause-resume{
+  border-color:#cfd7dd !important;
+  background:#eef2f4 !important;
+}
+@media(max-width:620px){
+  .centralpausebuttons{grid-template-columns:1fr}
+  .centralpausebuttons .btn{width:100%;min-height:46px}
+}
+#ratings tbody tr{
+  transition:background .15s ease;
+}
+#ratings tbody tr:first-child td{
+  background:#fff8e8;
+}
+
+
+/* FINAL v57: czytelny aktywny przycisk kategorii statystyk */
+.statstab.active{
+  color:var(--ink) !important;
+  background:#fff5e8 !important;
+  border-color:#e58a1f !important;
+}
+.statstab.active b{color:var(--ink) !important;}
+.statstab.active small{color:#6b7280 !important;}
+.statstab.active .statstabicon{
+  background:#e58a1f !important;
+  color:#fff !important;
+}
+
 </style></head><body>
 <div id="login" class="login"><div class="box"><button type="button" class="btn secondary" onclick="location.href='./index.html'" style="width:100%;margin:0 0 14px">← Wróć do wyboru działu</button><div class="brand"><span class="brandmark" aria-hidden="true"><i></i><i></i><i></i></span><span class="brandtext"><span class="clima">Clima</span><span class="gold">Gold</span></span></div><h2>Automatycy</h2><div class="hint">Wspólna baza online</div><div class="field"><label>Login</label><input id="lu" value="brygadzista" autocomplete="username"></div><div class="field"><label>Hasło</label><input id="lp" type="password" autocomplete="current-password"></div><button class="btn" onclick="doLogin()">Zaloguj</button><div id="le" class="error"></div></div></div>
 <div id="app" class="app"><aside class="side"><div class="brand"><span class="brandmark" aria-hidden="true"><i></i><i></i><i></i></span><span class="brandtext"><span class="clima">Clima</span><span class="gold">Gold</span></span></div><span class="hall">AUTOMATYCY</span><div class="nav">
@@ -982,7 +1314,165 @@ th{background:#f6f8f9}
 </section>
 
 <section id="entries" class="view"><div class="toolbar"><button id="addbtn" class="btn" onclick="openEntry()">+ Dodaj wpis</button><input id="entryMonth" type="month" onchange="entryMonthChanged()" style="padding:10px;border:1px solid var(--line);border-radius:9px"><button id="entryAllBtn" class="btn secondary entryfilter active" onclick="setEntryFilter('all')">Wszystkie</button><button id="entryOngoingBtn" class="btn secondary entryfilter" onclick="setEntryFilter('ongoing')">W TOKU</button><button id="entryStoppedBtn" class="btn secondary entryfilter" onclick="setEntryFilter('stopped')">ZATRZYMANE</button><button id="entryDoneBtn" class="btn secondary entryfilter" onclick="setEntryFilter('done')">ZAKOŃCZONE</button><select id="entryTypeFilter" onchange="renderEntries()" class="entryselect"><option value="">Wszystkie rodzaje central</option></select><select id="entryEmployeeFilter" onchange="renderEntries()" class="entryselect"><option value="">Wszyscy pracownicy</option></select><input id="search" placeholder="Szukaj nr, pracownika lub typu" oninput="renderEntries()" style="padding:10px;border:1px solid var(--line);border-radius:9px;min-width:240px"></div><div class="tablewrap"><table><thead><tr><th class="actioncol">Akcje</th><th>Data</th><th>Nr</th><th>Typ</th><th>Pracownicy</th><th>System</th><th>Czas</th><th>Uwagi</th></tr></thead><tbody id="et"></tbody></table></div></section>
-<section id="stats" class="view"><div class="toolbar"><input id="month" type="month" onchange="renderStats()" style="padding:9px"><select id="statType" onchange="renderStats()" style="padding:9px"></select><select id="statEmployee" onchange="renderStats()" style="padding:9px"><option value="">Wszyscy pracownicy</option></select><button class="btn secondary" onclick="exportStatsCSV()">Eksport CSV</button><button class="btn secondary" onclick="exportStatsXLS()">Eksport XLS</button></div><div class="cards"><div class="card"><div class="muted">Zakończone centrale</div><div id="sk1" class="kpi">0</div></div><div class="card"><div class="muted">Roboczogodziny łącznie</div><div id="sk2" class="kpi">0:00</div></div></div><div class="card statsnote" style="margin-top:14px"><h3>Top 3 — najkrótszy średni czas pełnej pracy</h3><div id="rank"></div><div class="muted" style="margin-top:10px"><b>Ranking i średnia liczone są tylko z pełnych prac.</b> Każdy pracownik będący przy centrali od początku do końca dostaje do rankingu ten sam czas wykonania centrali, niezależnie od systemu 8 h / 10 h. Indywidualny system nadal służy do liczenia roboczogodzin. Dołączenie później lub wcześniejsze zakończenie jest udziałem i nie wpływa na miejsce.</div></div><div class="statscharts"><div class="card"><h3>Pełne prace / udziały</h3><div class="chartlegend"><span><i class="lg-full"></i> Pełne prace</span><span><i class="lg-part"></i> Udziały</span></div><div id="chartWorkType" class="chartbox"></div></div><div class="card"><h3>Czas pełnych prac / udziałów</h3><div class="chartlegend"><span><i class="lg-full"></i> Czas pełnych</span><span><i class="lg-part"></i> Czas udziałów</span></div><div id="chartTimeMix" class="chartbox"></div></div><div class="card wide"><h3>Średni czas pełnej pracy</h3><div class="muted" style="margin-bottom:10px">Wspólny czas wykonania centrali — system 8 h / 10 h nie zmienia wyniku rankingu.</div><div id="chartAvgFull" class="chartbox"></div></div></div><div class="tablewrap" style="margin-top:14px"><table><thead><tr><th>Miejsce</th><th>Pracownik</th><th>Wszystkie prace</th><th>Pełne prace</th><th>Udziały</th><th>Dołączył później</th><th>Zakończył wcześniej</th><th>Czas łącznie</th><th>Czas pełnych</th><th>Czas udziałów</th><th>Średnia pełnej pracy</th></tr></thead><tbody id="st"></tbody></table></div></section>
+<section id="stats" class="view">
+  <div class="toolbar">
+    <input id="month" type="month" onchange="renderStats()" style="padding:9px">
+    <select id="statType" onchange="renderStats()" style="padding:9px"></select>
+    <select id="statEmployee" onchange="renderStats()" style="padding:9px"><option value="">Wszyscy pracownicy</option></select>
+    <button class="btn secondary" onclick="exportStatsCSV()">Eksport CSV</button>
+    <button class="btn secondary" onclick="exportStatsXLS()">Eksport XLS</button>
+  </div>
+
+  <div class="statstabbar">
+    <button class="statstab active" data-stat-tab="summary" onclick="showStatsTab('summary',this)">
+      <span class="statstabicon">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V9h4v10H4Zm6 0V5h4v14h-4Zm6 0v-7h4v7h-4Z"/></svg>
+      </span>
+      <span><b>Podsumowanie</b><small>Ogólny obraz pracy</small></span>
+    </button>
+
+    <button class="statstab" data-stat-tab="performance" onclick="showStatsTab('performance',this)">
+      <span class="statstabicon">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 18h4v-7H3v7Zm7 0h4V6h-4v12Zm7 0h4V3h-4v15ZM4 4l4 3 5-4 7 4v3l-7-4-5 4-4-3V4Z"/></svg>
+      </span>
+      <span><b>Wydajność</b><small>Ilość + średni czas</small></span>
+    </button>
+
+    <button class="statstab" data-stat-tab="participation" onclick="showStatsTab('participation',this)">
+      <span class="statstabicon">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 11a4 4 0 1 0-4-4 4 4 0 0 0 4 4Zm8-2a3 3 0 1 0-3-3 3 3 0 0 0 3 3ZM2 20v-2c0-3 2.7-5 6-5s6 2 6 5v2H2Zm13 0v-2a6.6 6.6 0 0 0-1.1-3.6A6.6 6.6 0 0 1 16 14c3 0 6 1.8 6 4v2h-7Z"/></svg>
+      </span>
+      <span><b>Udziały</b><small>Dołączenia i wcześniejsze wyjścia</small></span>
+    </button>
+  </div>
+
+  <div class="statspanel active" id="statsPanelSummary">
+    <div class="statcategoryhero">
+      <div>
+        <div class="statcategoryeyebrow">PODSUMOWANIE</div>
+        <h3>Najważniejsze dane w jednym miejscu</h3>
+        <p>Szybki podgląd zakończonych central, roboczogodzin i pracy całego zespołu.</p>
+      </div>
+      <div class="statillustration" aria-hidden="true">
+        <svg viewBox="0 0 180 110">
+          <rect x="13" y="69" width="28" height="27" rx="5"/>
+          <rect x="52" y="48" width="28" height="48" rx="5"/>
+          <rect x="91" y="28" width="28" height="68" rx="5"/>
+          <rect x="130" y="56" width="28" height="40" rx="5"/>
+          <path d="M20 35c23 4 36 1 55-10 19-11 35-8 55 1 10 4 19 3 31-4" fill="none" stroke-width="6" stroke-linecap="round"/>
+        </svg>
+      </div>
+    </div>
+
+    <div class="cards">
+      <div class="card statkpicard"><div class="statkpiicon">✓</div><div><div class="muted">Zakończone centrale</div><div id="sk1" class="kpi">0</div></div></div>
+      <div class="card statkpicard"><div class="statkpiicon">◷</div><div><div class="muted">Roboczogodziny łącznie</div><div id="sk2" class="kpi">0:00</div></div></div>
+    </div>
+
+    <div class="statscharts onecol">
+      <div class="card">
+        <h3>Czas pełnych prac / udziałów</h3>
+        <div class="chartlegend"><span><i class="lg-full"></i> Czas pełnych</span><span><i class="lg-part"></i> Czas udziałów</span></div>
+        <div id="chartTimeMix" class="chartbox"></div>
+      </div>
+    </div>
+
+    <div class="tablewrap" style="margin-top:14px">
+      <table>
+        <thead><tr><th>Pracownik</th><th>Wszystkie prace</th><th>Pełne</th><th>Udziały</th><th>Czas łącznie</th></tr></thead>
+        <tbody id="stOverview"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="statspanel" id="statsPanelPerformance">
+    <div class="statcategoryhero">
+      <div>
+        <div class="statcategoryeyebrow">WYDAJNOŚĆ</div>
+        <h3>Ile zrobił i jaki miał średni czas</h3>
+        <p>Jedna tabela pokazuje liczbę pełnych sztuk oraz średni czas wykonania.</p>
+      </div>
+      <div class="statillustration qty" aria-hidden="true">
+        <svg viewBox="0 0 180 110">
+          <rect x="20" y="28" width="48" height="32" rx="6"/>
+          <rect x="20" y="68" width="48" height="25" rx="6"/>
+          <rect x="76" y="28" width="38" height="65" rx="6"/>
+          <circle cx="139" cy="63" r="29"/>
+          <path d="M139 47v18l12 8" fill="none" stroke-width="6" stroke-linecap="round"/>
+        </svg>
+      </div>
+    </div>
+
+    <div class="card qtytimecontrols">
+      <div>
+        <h3>Ustaw kolejność</h3>
+        <div class="muted">Wybierz tylko, po czym tabela ma być posortowana.</div>
+      </div>
+      <div class="qtytimebuttons">
+        <button id="qtySortBtn" class="btn secondary qtysort active" onclick="setQtyTimeSort('qty')">Najwięcej sztuk</button>
+        <button id="timeSortBtn" class="btn secondary qtysort" onclick="setQtyTimeSort('time')">Najlepszy czas</button>
+      </div>
+    </div>
+
+    <div class="card statsnote">
+      <h3 id="qtyTimeRankTitle">Top 3 — najwięcej pełnych sztuk</h3>
+      <div id="rankQtyTime"></div>
+      <div id="rankQtyTimeNote" class="muted statssmallnote"></div>
+    </div>
+
+    <div class="statscharts onecol">
+      <div class="card">
+        <h3 id="qtyTimeChartTitle">Liczba pełnych sztuk</h3>
+        <div id="chartQtyTime" class="chartbox"></div>
+      </div>
+    </div>
+
+    <div class="tablewrap" style="margin-top:14px">
+      <table>
+        <thead><tr><th>Miejsce</th><th>Pracownik</th><th>Pełne sztuki</th><th>Średni czas</th><th>Wszystkie prace</th></tr></thead>
+        <tbody id="stQtyTime"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="statspanel" id="statsPanelParticipation">
+    <div class="statcategoryhero">
+      <div>
+        <div class="statcategoryeyebrow">UDZIAŁY</div>
+        <h3>Prace częściowe i zmiany w zespole</h3>
+        <p>Tu widać, kto dołączał później, kończył wcześniej i ile czasu przepracował jako udział w centrali.</p>
+      </div>
+      <div class="statillustration participation" aria-hidden="true">
+        <svg viewBox="0 0 180 110">
+          <circle cx="55" cy="38" r="16"/>
+          <circle cx="118" cy="35" r="13"/>
+          <path d="M25 91c0-23 14-37 30-37s30 14 30 37" fill="none" stroke-width="7" stroke-linecap="round"/>
+          <path d="M95 88c0-18 10-29 23-29s25 11 25 29" fill="none" stroke-width="7" stroke-linecap="round"/>
+          <path d="M77 50h25" fill="none" stroke-width="6" stroke-linecap="round"/>
+        </svg>
+      </div>
+    </div>
+
+    <div class="cards">
+      <div class="card statkpicard"><div class="statkpiicon">↳</div><div><div class="muted">Łączna liczba udziałów</div><div id="sp1" class="kpi">0</div></div></div>
+      <div class="card statkpicard"><div class="statkpiicon">◷</div><div><div class="muted">Czas udziałów</div><div id="sp2" class="kpi">0:00</div></div></div>
+    </div>
+
+    <div class="statscharts onecol">
+      <div class="card">
+        <h3>Udziały według pracownika</h3>
+        <div id="chartParticipation" class="chartbox"></div>
+      </div>
+    </div>
+
+    <div class="tablewrap" style="margin-top:14px">
+      <table>
+        <thead><tr><th>Pracownik</th><th>Udziały</th><th>Dołączył później</th><th>Zakończył wcześniej</th><th>Czas udziałów</th></tr></thead>
+        <tbody id="stParticipation"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
 <section id="ratings" class="view"><div class="card"><div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap"><div><h3 style="margin:0">Ocena kompetencji</h3><div class="muted">„-” = ocena nieustalona</div></div><button id="saveratings" class="btn" onclick="saveRatings()">Zapisz oceny</button></div></div><div class="tablewrap" style="margin-top:14px"><table><thead><tr><th>Miejsce</th><th>Pracownik</th><th>Wiedza i kompetencje</th><th>Wydajność<br>(szybkość pracy)</th><th>Dokładność<br>(bezbłędność)</th><th>Jakość pracy<br>(estetyka)</th><th>Wynik</th></tr></thead><tbody id="rt"></tbody></table></div></section>
 <section id="settings" class="view">
   <div class="settingsmenu">
@@ -1031,7 +1521,18 @@ th{background:#f6f8f9}
 </section>
 <section id="users" class="view"><div class="card"><h3>Nowe konto</h3><div class="grid"><div class="field"><label>Login</label><input id="nu"></div><div class="field"><label>Hasło</label><input id="np" type="password"></div><div class="field"><label>Rola</label><select id="nr"><option value="supervisor">Przełożony</option><option value="viewer">Tylko podgląd</option><option value="admin">Administrator</option></select></div></div><button class="btn" onclick="addUser()">Dodaj konto</button></div><div class="card" style="margin-top:14px"><div id="ul"></div></div></section>
 </main></div>
-<div id="modal" class="modal"><div class="dialog"><h2>Wpis ewidencji</h2><input id="eid" type="hidden"><div class="quickwork"><button type="button" class="btn" onclick="quickStartWork()"><span class="qicon play" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5.2v13.6c0 .9 1 1.4 1.7.9l9.6-6.8c.7-.5.7-1.5 0-2L9.7 4.1C9 3.6 8 4.1 8 5.2Z"/></svg></span><span>START PRACY</span></button><button type="button" class="btn secondary" onclick="quickEndWork()"><span class="qicon stop" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="1.8"/></svg></span><span>KONIEC PRACY</span></button></div><div class="grid"><div class="field"><label>Nr / oznaczenie</label><input id="no"></div><div class="field"><label>Data rozpoczęcia</label><input id="sd" type="date"></div><div class="field"><label>Data zakończenia</label><input id="ed" type="date"></div><div class="field"><label>Typ urządzenia</label><select id="dt" onchange="updateSectionVisibility()"></select></div><div class="field"><label>Godzina rozpoczęcia</label><input id="stt" type="time"></div><div class="field"><label>Godzina zakończenia</label><input id="ett" type="time"></div></div><div class="field" id="sectionField" style="display:none"><label>Sekcja centrali dzielonej</label><select id="section"></select></div><h3>Pracownicy, system pracy i korekty czasu</h3><div class="muted">Każdy pracownik ma własny system pracy na każdy dzień wpisu.</div><div id="empsel"></div><div class="toolbar empaddbar"><button id="addEmpBtn" type="button" class="btn" onclick="addEmployeeBlock()">+ Dodaj pracownika</button></div><div class="grid"><div class="field"><label>Kolor</label><select id="markcolor"><option value="">Bez koloru</option><option value="yellow">Żółty</option><option value="green">Zielony</option><option value="blue">Niebieski</option><option value="red">Czerwony</option><option value="orange">Pomarańczowy</option><option value="purple">Fioletowy</option></select></div><div class="field" style="grid-column:span 2"><label>Uwagi</label><textarea id="notes"></textarea></div></div><div class="toolbar"><button class="btn" onclick="saveEntry()">Zapisz</button><button class="btn secondary" onclick="closeEntry()">Anuluj</button></div></div></div>
+<div id="modal" class="modal"><div class="dialog"><h2>Wpis ewidencji</h2><input id="eid" type="hidden"><div class="quickwork"><button type="button" class="btn" onclick="quickStartWork()"><span class="qicon play" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5.2v13.6c0 .9 1 1.4 1.7.9l9.6-6.8c.7-.5.7-1.5 0-2L9.7 4.1C9 3.6 8 4.1 8 5.2Z"/></svg></span><span>START PRACY</span></button><button type="button" class="btn secondary" onclick="quickEndWork()"><span class="qicon stop" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="1.8"/></svg></span><span>KONIEC PRACY</span></button></div><div class="centralpausebox">
+  <div class="centralpausehead">
+    <div>
+      <b>Wstrzymanie całej centrali</b>
+      <div id="centralPauseStatus" class="muted">Centrala pracuje.</div>
+    </div>
+  </div>
+  <div class="centralpausebuttons">
+    <button type="button" class="btn secondary centralpause-stop" onclick="pauseAllWork()">Wstrzymaj centralę — wszyscy</button>
+    <button type="button" class="btn secondary centralpause-resume" onclick="resumeAllWork()">Wznów centralę — wszyscy</button>
+  </div>
+</div><div class="grid"><div class="field"><label>Nr / oznaczenie</label><input id="no"></div><div class="field"><label>Data rozpoczęcia</label><input id="sd" type="date"></div><div class="field"><label>Data zakończenia</label><input id="ed" type="date"></div><div class="field"><label>Typ urządzenia</label><select id="dt" onchange="updateSectionVisibility()"></select></div><div class="field"><label>Godzina rozpoczęcia</label><input id="stt" type="time"></div><div class="field"><label>Godzina zakończenia</label><input id="ett" type="time"></div></div><div class="field" id="sectionField" style="display:none"><label>Sekcja centrali dzielonej</label><select id="section"></select></div><h3>Pracownicy, system pracy i korekty czasu</h3><div class="muted">Każdy pracownik ma własny system pracy na każdy dzień wpisu.</div><div id="empsel"></div><div class="toolbar empaddbar"><button id="addEmpBtn" type="button" class="btn" onclick="addEmployeeBlock()">+ Dodaj pracownika</button></div><div class="grid"><div class="field"><label>Kolor</label><select id="markcolor"><option value="">Bez koloru</option><option value="yellow">Żółty</option><option value="green">Zielony</option><option value="blue">Niebieski</option><option value="red">Czerwony</option><option value="orange">Pomarańczowy</option><option value="purple">Fioletowy</option></select></div><div class="field" style="grid-column:span 2"><label>Uwagi</label><textarea id="notes"></textarea></div></div><div class="entryactions"><button class="btn entrysavebtn" onclick="saveEntry()">Zapisz</button><button class="btn secondary entrycancelbtn" onclick="closeEntry()">Anuluj</button></div></div></div>
 <script>
 
 var HALL='AUTO',D=null,ME=null,TOKEN_KEY='cg_'+HALL+'_token',DEFAULT_EMP=HALL==='AUTO'?1:2,MAX_EMP=HALL==='AUTO'?1:10,SECTION_PREFIX='__CG_SECTION__:';
@@ -1131,7 +1632,7 @@ function addEmployeeBlock(){
 }
 function removeEmployeeBlock(btn){
   var block=btn.closest('.empblock');if(block)block.remove();
-  renumberEmployeeBlocks()
+  renumberEmployeeBlocks();updateCentralPauseStatus()
 }
 
 
@@ -1801,6 +2302,65 @@ function restoreParticipationControls(existing){
   })
 }
 
+
+function selectedEmployeeBlocks(){
+  return[].slice.call(document.querySelectorAll('.empblock')).filter(function(block){
+    var s=block.querySelector('.emp');
+    return s&&String(s.value||'').trim()
+  })
+}
+function blockOpenPause(block){
+  var p=collectPauses(block);
+  for(var i=p.length-1;i>=0;i--){
+    if(p[i].from_date&&p[i].from_time&&!(p[i].to_date&&p[i].to_time))return p[i]
+  }
+  return null
+}
+function updateCentralPauseStatus(){
+  var el=$('centralPauseStatus');if(!el)return;
+  var blocks=selectedEmployeeBlocks();
+  if(!blocks.length){el.textContent='Wybierz pracowników.';return}
+  var paused=blocks.filter(function(block){return !!blockOpenPause(block)}).length;
+  if(paused===blocks.length)el.textContent='Centrala wstrzymana — wszyscy pracownicy.';
+  else if(paused>0)el.textContent='Wstrzymanie indywidualne: '+paused+' z '+blocks.length+' pracowników.';
+  else el.textContent='Centrala pracuje.'
+}
+function pauseAllWork(){
+  var blocks=selectedEmployeeBlocks();
+  if(!blocks.length){alert('Najpierw wybierz pracowników.');return}
+  var d=pauseNowDate(),tm=pauseNowTime(),changed=0;
+  blocks.forEach(function(block){
+    var p=collectPauses(block);
+    var open=p.some(function(x){return x.from_date&&x.from_time&&!(x.to_date&&x.to_time)});
+    if(!open){
+      p.push({from_date:d,from_time:tm,to_date:'',to_time:''});
+      renderPauseControls(block,p);
+      changed++
+    }
+  });
+  updateCentralPauseStatus();
+  if(!changed)alert('Centrala jest już wstrzymana u wszystkich pracowników.')
+}
+function resumeAllWork(){
+  var blocks=selectedEmployeeBlocks();
+  if(!blocks.length){alert('Najpierw wybierz pracowników.');return}
+  var d=pauseNowDate(),tm=pauseNowTime(),changed=0;
+  blocks.forEach(function(block){
+    var p=collectPauses(block),i;
+    for(i=p.length-1;i>=0;i--){
+      if(p[i].from_date&&p[i].from_time&&!(p[i].to_date&&p[i].to_time))break
+    }
+    if(i>=0){
+      p[i].to_date=d;
+      p[i].to_time=tm;
+      renderPauseControls(block,p);
+      changed++
+    }
+  });
+  updateCentralPauseStatus();
+  if(!changed)alert('Żaden z pracowników nie ma obecnie wstrzymanej pracy.')
+}
+
 function collectPauses(block){
   return[].slice.call(block.querySelectorAll('.pauserow')).map(function(r){return{from_date:r.querySelector('.pausefromd').value,from_time:r.querySelector('.pausefromt').value,to_date:r.querySelector('.pausetod').value,to_time:r.querySelector('.pausetot').value}}).filter(function(p){return p.from_date||p.from_time||p.to_date||p.to_time})
 }
@@ -1809,7 +2369,8 @@ function pauseNowTime(){var n=new Date();return String(n.getHours()).padStart(2,
 function updatePauseStatus(block){
   var p=collectPauses(block),open=p.find(function(x){return x.from_date&&x.from_time&&!(x.to_date&&x.to_time)}),mins=0;
   p.forEach(function(x){if(x.from_date&&x.from_time&&x.to_date&&x.to_time){var a=new Date(x.from_date+'T'+x.from_time),b=new Date(x.to_date+'T'+x.to_time);if(b>a)mins+=(b-a)/60000}});
-  block.querySelector('.pausestatus').textContent=open?'Wstrzymana od '+open.from_date+' '+open.from_time:(p.length?'Przerwy: '+p.length+' · '+fmt(mins):'Brak przerw.')
+  block.querySelector('.pausestatus').textContent=open?'Wstrzymana od '+open.from_date+' '+open.from_time:(p.length?'Przerwy: '+p.length+' · '+fmt(mins):'Brak przerw.');
+  updateCentralPauseStatus()
 }
 function renderPauseControls(block,pauses){
   var box=block.querySelector('.pauselist');pauses=Array.isArray(pauses)?pauses:[];
@@ -1859,7 +2420,7 @@ function openEntry(id){
   var count=HALL==='AUTO'?1:Math.min(MAX_EMP,Math.max(DEFAULT_EMP,(e.employees||[]).length,es.length));
   $('empsel').innerHTML=Array.from({length:count},function(_,i){return employeeBlockHtml(i,e,cs)}).join('');
   restoreParticipationControls(es);renderAllEmpDayBoxes(es);restoreBreakGroups(es);restorePauseControls(es);renumberEmployeeBlocks();
-  $('sd').onchange=refreshEmpDays;$('ed').onchange=refreshEmpDays;$('modal').classList.add('open')
+  $('sd').onchange=refreshEmpDays;$('ed').onchange=refreshEmpDays;$('modal').classList.add('open');updateCentralPauseStatus()
 }
 function quickNowParts(){var d=new Date();return{date:localDate(d),time:String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')}}
 function quickStartWork(){var n=quickNowParts();$('sd').value=n.date;$('stt').value=n.time;if(!$('ed').value)$('ed').value='';if(!$('ett').value)$('ett').value='';refreshEmpDays()}
@@ -1875,6 +2436,87 @@ function rankFullRows(rows){
   rows.forEach(function(x){x.place=places[x.name]||null});
   return rows.slice().sort(function(a,b){if(a.place&&b.place)return a.place-b.place||a.name.localeCompare(b.name,'pl');if(a.place)return-1;if(b.place)return 1;return a.name.localeCompare(b.name,'pl')})
 }
+
+
+
+
+var STATS_TAB='summary',QTY_TIME_SORT='qty';
+function showStatsTab(name,btn){
+  STATS_TAB=['summary','performance','participation'].indexOf(name)>=0?name:'summary';
+  document.querySelectorAll('#stats .statspanel').forEach(function(x){
+    x.classList.toggle('active',x.id==='statsPanel'+STATS_TAB.charAt(0).toUpperCase()+STATS_TAB.slice(1))
+  });
+  document.querySelectorAll('#stats .statstab').forEach(function(x){
+    x.classList.toggle('active',x.dataset.statTab===STATS_TAB)
+  });
+  if(btn&&window.innerWidth<600){
+    var panel=$('statsPanel'+STATS_TAB.charAt(0).toUpperCase()+STATS_TAB.slice(1));
+    if(panel&&panel.scrollIntoView)panel.scrollIntoView({behavior:'smooth',block:'start'})
+  }
+}
+function rankQuantityRows(rows){
+  var a=rows.filter(function(x){return x.full>0}).slice().sort(function(a,b){
+    return b.full-a.full||a.avgFull-b.avgFull||a.name.localeCompare(b.name,'pl')
+  });
+  var last=null,place=0;
+  a.forEach(function(x){
+    if(last===null||x.full!==last){place++;last=x.full}
+    x.qtyPlace=place
+  });
+  return a
+}
+function qtyTimeRows(rows){
+  var a=rows.filter(function(x){return x.full>0}).slice();
+  if(QTY_TIME_SORT==='time'){
+    a.sort(function(a,b){return a.avgFull-b.avgFull||b.full-a.full||a.name.localeCompare(b.name,'pl')});
+  }else{
+    a.sort(function(a,b){return b.full-a.full||a.avgFull-b.avgFull||a.name.localeCompare(b.name,'pl')});
+  }
+  var last=null,place=0;
+  a.forEach(function(x){
+    var key=QTY_TIME_SORT==='time'?Math.round(x.avgFull):x.full;
+    if(last===null||key!==last){place++;last=key}
+    x.qtyTimePlace=place
+  });
+  return a
+}
+function setQtyTimeSort(mode){
+  QTY_TIME_SORT=mode==='time'?'time':'qty';
+  if($('qtySortBtn'))$('qtySortBtn').classList.toggle('active',QTY_TIME_SORT==='qty');
+  if($('timeSortBtn'))$('timeSortBtn').classList.toggle('active',QTY_TIME_SORT==='time');
+  renderStats()
+}
+function renderQtyTimeChart(rows){
+  var el=$('chartQtyTime');if(!el)return;
+  var a=qtyTimeRows(rows);
+  if(!a.length){el.innerHTML='<div class="chartempty">Brak pełnych prac.</div>';return}
+  if(QTY_TIME_SORT==='qty'){
+    var max=Math.max.apply(null,a.map(function(x){return x.full||0}));
+    el.innerHTML=a.map(function(x){
+      var w=max?x.full/max*100:0;
+      return'<div class="chartrow"><div class="chartname" title="'+esc(x.name)+'">'+x.qtyTimePlace+'. '+esc(x.name)+'</div><div class="charttrack"><div class="barseg full" style="width:'+w.toFixed(2)+'%"></div></div><div class="chartvalue">'+x.full+' szt.</div></div>'
+    }).join('')
+  }else{
+    var maxTime=Math.max.apply(null,a.map(function(x){return x.avgFull||0}));
+    el.innerHTML=a.map(function(x){
+      var w=maxTime?x.avgFull/maxTime*100:0;
+      return'<div class="chartrow"><div class="chartname" title="'+esc(x.name)+'">'+x.qtyTimePlace+'. '+esc(x.name)+'</div><div class="charttrack"><div class="barseg part" style="width:'+w.toFixed(2)+'%"></div></div><div class="chartvalue">'+fmt(x.avgFull)+'</div></div>'
+    }).join('')
+  }
+}
+function renderParticipationChart(rows){
+  var el=$('chartParticipation');if(!el)return;
+  var a=rows.filter(function(x){return x.partial>0}).slice().sort(function(a,b){
+    return b.partial-a.partial||b.partialMinutes-a.partialMinutes||a.name.localeCompare(b.name,'pl')
+  });
+  if(!a.length){el.innerHTML='<div class="chartempty">Brak udziałów w wybranym okresie.</div>';return}
+  var max=Math.max.apply(null,a.map(function(x){return x.partial||0}));
+  el.innerHTML=a.map(function(x){
+    var w=max?x.partial/max*100:0;
+    return'<div class="chartrow"><div class="chartname" title="'+esc(x.name)+'">'+esc(x.name)+'</div><div class="charttrack"><div class="barseg part" style="width:'+w.toFixed(2)+'%"></div></div><div class="chartvalue">'+x.partial+'</div></div>'
+  }).join('')
+}
+
 function statsData(){
   var m=$('month').value,t=$('statType').value,emp=$('statEmployee')?$('statEmployee').value:'',arr=D.entries.filter(function(e){return e.end_date&&(!m||(e.start_date<=m+'-31'&&e.end_date>=m+'-01'))&&(!t||e.device_type===t)&&(!emp||(e.employees||[]).indexOf(emp)>=0)}),map={},total=0;
   arr.forEach(function(e){
@@ -1903,11 +2545,55 @@ function renderAvgFullChart(rows){
   el.innerHTML=a.map(function(x){var w=max?x.avgFull/max*100:0;return'<div class="chartrow"><div class="chartname" title="'+esc(x.name)+'">'+x.place+'. '+esc(x.name)+'</div><div class="charttrack"><div class="barseg full" style="width:'+w.toFixed(2)+'%"></div></div><div class="chartvalue">'+fmt(x.avgFull)+' · '+x.full+' pełn'+(x.full===1?'a':'e')+'</div></div>'}).join('')
 }
 function renderStats(){
-  var d=statsData();$('sk1').textContent=d.entries.length;$('sk2').textContent=fmt(d.total);
-  var top=d.rows.filter(function(x){return x.place&&x.place<=3});
-  $('rank').innerHTML=top.map(function(x){return'<div class="rank"><b>'+x.place+'. '+esc(x.name)+'</b> — średnio '+fmt(x.avgFull)+' ('+x.full+' pełn'+(x.full===1?'a praca':'e prace')+')</div>'}).join('')||'<span class="muted">Brak pełnych prac do rankingu.</span>';
-  $('st').innerHTML=d.rows.map(function(x){return'<tr><td><b>'+(x.place||'—')+'</b></td><td><b>'+esc(x.name)+'</b></td><td>'+x.count+'</td><td><b>'+x.full+'</b></td><td>'+x.partial+'</td><td>'+x.joined+'</td><td>'+x.left+'</td><td>'+fmt(x.minutes)+'</td><td>'+fmt(x.fullMinutes)+'</td><td>'+fmt(x.partialMinutes)+'</td><td><b>'+(x.full?fmt(x.avgFull):'—')+'</b></td></tr>'}).join('');
-  renderStackChart('chartWorkType',d.rows,'full','partial',function(v){return String(Math.round(v))});renderStackChart('chartTimeMix',d.rows,'fullMinutes','partialMinutes',fmt);renderAvgFullChart(d.rows)
+  var d=statsData();
+  $('sk1').textContent=d.entries.length;
+  $('sk2').textContent=fmt(d.total);
+
+  $('stOverview').innerHTML=d.rows.map(function(x){
+    return'<tr><td><b>'+esc(x.name)+'</b></td><td>'+x.count+'</td><td><b>'+x.full+'</b></td><td>'+x.partial+'</td><td>'+fmt(x.minutes)+'</td></tr>'
+  }).join('')||'<tr><td colspan="5" class="muted">Brak danych.</td></tr>';
+
+  var qt=qtyTimeRows(d.rows),topQt=qt.filter(function(x){return x.qtyTimePlace<=3});
+  $('qtyTimeRankTitle').textContent=QTY_TIME_SORT==='qty'?'Top 3 — najwięcej pełnych sztuk':'Top 3 — najlepszy średni czas';
+  $('qtyTimeChartTitle').textContent=QTY_TIME_SORT==='qty'?'Liczba pełnych sztuk':'Średni czas pełnej pracy';
+
+  $('rankQtyTime').innerHTML=topQt.map(function(x){
+    var main=QTY_TIME_SORT==='qty'?(x.full+' szt.') : fmt(x.avgFull);
+    var sub=QTY_TIME_SORT==='qty'?('średni czas '+fmt(x.avgFull)):(x.full+' pełnych szt.');
+    return'<div class="statrankrow"><span class="statrankplace">'+x.qtyTimePlace+'</span><span class="statrankname">'+esc(x.name)+'<span class="statranksub">'+sub+'</span></span><span class="statrankvalue">'+main+'</span></div>'
+  }).join('')||'<span class="muted">Brak pełnych prac.</span>';
+
+  $('rankQtyTimeNote').innerHTML=d.type
+    ?'Wybrany jest jeden rodzaj centrali — porównujesz tych samych rodzajów pracy.'
+    :'Przy „Wszystkie rodzaje” liczba sztuk jest orientacyjna, bo centrale mogą różnić się pracochłonnością.';
+
+  var bestQty=qt.length?Math.max.apply(null,qt.map(function(x){return x.full})):0;
+  var bestTime=qt.length?Math.min.apply(null,qt.map(function(x){return x.avgFull})):0;
+  $('stQtyTime').innerHTML=qt.map(function(x){
+    var qtyBadge=x.full===bestQty?'<span class="qtytimebest">najwięcej</span>':'';
+    var timeBadge=x.avgFull===bestTime?'<span class="qtytimebest">najszybciej</span>':'';
+    return'<tr><td><b>'+x.qtyTimePlace+'</b></td><td><b>'+esc(x.name)+'</b></td><td><b>'+x.full+'</b>'+qtyBadge+'</td><td><b>'+fmt(x.avgFull)+'</b>'+timeBadge+'</td><td>'+x.count+'</td></tr>'
+  }).join('')||'<tr><td colspan="5" class="muted">Brak pełnych prac.</td></tr>';
+
+  var partCount=d.rows.reduce(function(s,x){return s+x.partial},0);
+  var partMins=d.rows.reduce(function(s,x){return s+x.partialMinutes},0);
+  $('sp1').textContent=partCount;
+  $('sp2').textContent=fmt(partMins);
+
+  var pr=d.rows.filter(function(x){return x.partial>0||x.joined>0||x.left>0}).slice().sort(function(a,b){
+    return b.partial-a.partial||b.partialMinutes-a.partialMinutes||a.name.localeCompare(b.name,'pl')
+  });
+  $('stParticipation').innerHTML=pr.map(function(x){
+    return'<tr><td><b>'+esc(x.name)+'</b></td><td><b>'+x.partial+'</b></td><td>'+x.joined+'</td><td>'+x.left+'</td><td>'+fmt(x.partialMinutes)+'</td></tr>'
+  }).join('')||'<tr><td colspan="5" class="muted">Brak udziałów w wybranym okresie.</td></tr>';
+
+  if($('qtySortBtn'))$('qtySortBtn').classList.toggle('active',QTY_TIME_SORT==='qty');
+  if($('timeSortBtn'))$('timeSortBtn').classList.toggle('active',QTY_TIME_SORT==='time');
+
+  renderStackChart('chartTimeMix',d.rows,'fullMinutes','partialMinutes',fmt);
+  renderQtyTimeChart(d.rows);
+  renderParticipationChart(d.rows);
+  showStatsTab(STATS_TAB)
 }
 function csvCell(v){v=String(v==null?'':v);return/[;"\r\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}
 function downloadBlob(blob,name){var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(function(){URL.revokeObjectURL(a.href)},1000)}
@@ -1919,10 +2605,10 @@ function exportFullStatsData(){
   var rows=names.map(function(n){var x=map[n]||{name:n,count:0,minutes:0,full:0,fullMinutes:0,rankMinutes:0,partial:0,partialMinutes:0,joined:0,left:0,byType:{}};x.avgFull=x.full?(x.rankMinutes||0)/x.full:0;return x});rows=rankFullRows(rows);return{month:m,type:t,entries:arr,types:types,rows:rows,details:details}
 }
 function exportStatsCSV(){
-  var d=exportFullStatsData(),head=['Miejsce','Pracownik','Wszystkie prace','Pełne prace','Udziały','Dołączył później','Zakończył wcześniej','Czas łącznie','Czas pełnych prac','Czas udziałów','Średnia pełnej pracy'];
+  var d=exportFullStatsData(),qtyMap={};rankQuantityRows(d.rows).forEach(function(x){qtyMap[x.name]=x.qtyPlace});var head=['Miejsce czasu','Miejsce ilości','Pracownik','Wszystkie prace','Pełne prace','Udziały','Dołączył później','Zakończył wcześniej','Czas łącznie','Czas pełnych prac','Czas udziałów','Średnia pełnej pracy'];
   d.types.forEach(function(t){head.push(t+' — wszystkie');head.push(t+' — pełne');head.push(t+' — udziały');head.push(t+' — czas łącznie');head.push(t+' — czas pełnych');head.push(t+' — średnia pełnej')});
   var rows=[['Hala',hallName()],['Miesiąc',d.month||'wszystkie'],['Typ centrali',d.type||'wszystkie'],['Pracownik',($('statEmployee')&&$('statEmployee').value)||'wszyscy'],[],head];
-  d.rows.forEach(function(x){var r=[x.place||'—',x.name,x.count,x.full,x.partial,x.joined,x.left,fmt(x.minutes),fmt(x.fullMinutes),fmt(x.partialMinutes),x.full?fmt(x.avgFull):'—'];d.types.forEach(function(t){var y=x.byType[t]||{count:0,minutes:0,full:0,fullMinutes:0,partial:0};r.push(y.count);r.push(y.full);r.push(y.partial);r.push(fmt(y.minutes));r.push(fmt(y.fullMinutes));r.push(y.full?fmt((y.rankMinutes||0)/y.full):'—')});rows.push(r)});
+  d.rows.forEach(function(x){var r=[x.place||'—',qtyMap[x.name]||'—',x.name,x.count,x.full,x.partial,x.joined,x.left,fmt(x.minutes),fmt(x.fullMinutes),fmt(x.partialMinutes),x.full?fmt(x.avgFull):'—'];d.types.forEach(function(t){var y=x.byType[t]||{count:0,minutes:0,full:0,fullMinutes:0,partial:0};r.push(y.count);r.push(y.full);r.push(y.partial);r.push(fmt(y.minutes));r.push(fmt(y.fullMinutes));r.push(y.full?fmt((y.rankMinutes||0)/y.full):'—')});rows.push(r)});
   rows.push([]);rows.push(['SZCZEGÓŁY WPISÓW']);rows.push(['Data rozpoczęcia','Data zakończenia','Nr / oznaczenie','Typ urządzenia','Sekcja','Pracownik','System pracy','Udział od','Udział do','Status udziału','Klasyfikacja','Czas przy pracy','Korekta historyczna (h)','Uwagi']);d.details.forEach(function(x){rows.push([x.start,x.end,x.number,x.type,x.section||'—',x.employee,x.system,x.from,x.to,x.status,x.classification,fmt(x.minutes),x.correction,x.notes])});
   var csv='\ufeff'+rows.map(function(r){return r.map(csvCell).join(';')}).join('\r\n');downloadBlob(new Blob([csv],{type:'text/csv;charset=utf-8'}),'ClimaGold_'+HALL+'_statystyki_PELNE_UDZIALY_'+(d.month||'wszystkie')+'.csv')
 }
@@ -1930,14 +2616,50 @@ function xmlEsc(v){return String(v==null?'':v).replace(/&/g,'&amp;').replace(/</
 function exportStatsXLS(){
   var d=exportFullStatsData(),r='<?xml version="1.0"?><Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">';
   function sheet(name,rows,widths){r+='<Worksheet ss:Name="'+xmlEsc(name)+'"><Table>';(widths||[]).forEach(function(w){r+='<Column ss:AutoFitWidth="1" ss:Width="'+w+'"/>'});rows.forEach(function(a){r+='<Row>'+a.map(function(v){return'<Cell><Data ss:Type="String">'+xmlEsc(v)+'</Data></Cell>'}).join('')+'</Row>'});r+='</Table></Worksheet>'}
-  var sum=[['Hala',hallName()],['Miesiąc',d.month||'wszystkie'],['Typ centrali',d.type||'wszystkie'],['Pracownik',($('statEmployee')&&$('statEmployee').value)||'wszyscy'],[],['Miejsce','Pracownik','Wszystkie prace','Pełne prace','Udziały','Dołączył później','Zakończył wcześniej','Czas łącznie','Czas pełnych','Czas udziałów','Średnia pełnej pracy']];d.rows.forEach(function(x){sum.push([x.place||'—',x.name,x.count,x.full,x.partial,x.joined,x.left,fmt(x.minutes),fmt(x.fullMinutes),fmt(x.partialMinutes),x.full?fmt(x.avgFull):'—'])});
+  var qtyMap={};rankQuantityRows(d.rows).forEach(function(x){qtyMap[x.name]=x.qtyPlace});var sum=[['Hala',hallName()],['Miesiąc',d.month||'wszystkie'],['Typ centrali',d.type||'wszystkie'],['Pracownik',($('statEmployee')&&$('statEmployee').value)||'wszyscy'],[],['Miejsce czasu','Miejsce ilości','Pracownik','Wszystkie prace','Pełne prace','Udziały','Dołączył później','Zakończył wcześniej','Czas łącznie','Czas pełnych','Czas udziałów','Średnia pełnej pracy']];d.rows.forEach(function(x){sum.push([x.place||'—',qtyMap[x.name]||'—',x.name,x.count,x.full,x.partial,x.joined,x.left,fmt(x.minutes),fmt(x.fullMinutes),fmt(x.partialMinutes),x.full?fmt(x.avgFull):'—'])});
   var typ=[['Pracownik']];d.types.forEach(function(t){typ[0].push(t+' — wszystkie');typ[0].push(t+' — pełne');typ[0].push(t+' — udziały');typ[0].push(t+' — czas łącznie');typ[0].push(t+' — czas pełnych');typ[0].push(t+' — średnia pełnej')});d.rows.forEach(function(x){var a=[x.name];d.types.forEach(function(t){var y=x.byType[t]||{count:0,minutes:0,full:0,fullMinutes:0,partial:0};a.push(y.count);a.push(y.full);a.push(y.partial);a.push(fmt(y.minutes));a.push(fmt(y.fullMinutes));a.push(y.full?fmt((y.rankMinutes||0)/y.full):'—')});typ.push(a)});
   var det=[['Data rozpoczęcia','Data zakończenia','Nr / oznaczenie','Typ urządzenia','Sekcja','Pracownik','System pracy','Udział od','Udział do','Status udziału','Klasyfikacja','Czas przy pracy','Korekta historyczna (h)','Uwagi']];d.details.forEach(function(x){det.push([x.start,x.end,x.number,x.type,x.section||'—',x.employee,x.system,x.from,x.to,x.status,x.classification,fmt(x.minutes),x.correction,x.notes])});
-  var tw=[180];d.types.forEach(function(){tw.push(80);tw.push(80);tw.push(80);tw.push(100);tw.push(100);tw.push(105)});sheet('Podsumowanie',sum,[70,180,90,85,80,105,115,105,105,105,120]);sheet('Typy central',typ,tw);sheet('Szczegóły',det,[105,105,115,130,185,165,135,135,230,100,110,95,300]);r+='</Workbook>';downloadBlob(new Blob([r],{type:'application/vnd.ms-excel;charset=utf-8'}),'ClimaGold_'+HALL+'_statystyki_PELNE_UDZIALY_'+(d.month||'wszystkie')+'.xls')
+  var tw=[180];d.types.forEach(function(){tw.push(80);tw.push(80);tw.push(80);tw.push(100);tw.push(100);tw.push(105)});sheet('Podsumowanie',sum,[80,80,180,90,85,80,105,115,105,105,105,120]);sheet('Typy central',typ,tw);sheet('Szczegóły',det,[105,105,115,130,185,165,135,135,230,100,110,95,300]);r+='</Workbook>';downloadBlob(new Blob([r],{type:'application/vnd.ms-excel;charset=utf-8'}),'ClimaGold_'+HALL+'_statystyki_PELNE_UDZIALY_'+(d.month||'wszystkie')+'.xls')
 }
 function scoreRating(r){var a=[r.knowledge,r.efficiency,r.accuracy,r.quality];if(a.some(function(v){return!v||v==='-'}))return null;return a.reduce(function(s,v){return s+(parseInt(v)||0)},0)}
 function ratingOpts(v){return['-','1/5','2/5','3/5','4/5','5/5'].map(function(x){return'<option'+(x===v?' selected':'')+'>'+x+'</option>'}).join('')}
-function renderRatings(){var saved={};(D.ratings||[]).forEach(function(r){saved[r.employee]=r});var rows=D.settings.employees.map(function(n){return saved[n]||{employee:n,knowledge:'-',efficiency:'-',accuracy:'-',quality:'-'}}),scores=[].concat(rows.map(scoreRating).filter(function(x){return x!==null})).filter(function(v,i,a){return a.indexOf(v)===i}).sort(function(a,b){return b-a});$('rt').innerHTML=rows.map(function(r){var sc=scoreRating(r),pl=sc===null?'—':scores.indexOf(sc)+1;return'<tr data-emp="'+esc(r.employee)+'"><td><b>'+pl+'</b></td><td><b>'+esc(r.employee)+'</b></td>'+['knowledge','efficiency','accuracy','quality'].map(function(k){return'<td><select class="rating" data-k="'+k+'">'+ratingOpts(r[k]||'-')+'</select></td>'}).join('')+'<td><b>'+(sc===null?'—':sc+'/20')+'</b></td></tr>'}).join('');if(ME.role==='viewer'){document.querySelectorAll('.rating').forEach(function(x){x.disabled=true});$('saveratings').style.display='none'}}
+function ratingPlaceMap(rows){
+  var vals=rows.map(scoreRating).filter(function(x){return x!==null}).filter(function(v,i,a){return a.indexOf(v)===i}).sort(function(a,b){return b-a});
+  var out={};
+  rows.forEach(function(r){var sc=scoreRating(r);out[r.employee]=sc===null?null:vals.indexOf(sc)+1});
+  return out
+}
+function renderRatings(overrideRows){
+  var saved={};
+  ((overrideRows&&overrideRows.length)?overrideRows:(D.ratings||[])).forEach(function(r){saved[r.employee]=r});
+  var rows=(D.settings.employees||[]).map(function(n){
+    return saved[n]||{employee:n,knowledge:'-',efficiency:'-',accuracy:'-',quality:'-'}
+  });
+  var places=ratingPlaceMap(rows);
+  rows.sort(function(a,b){
+    var sa=scoreRating(a),sb=scoreRating(b);
+    if(sa===null&&sb===null)return a.employee.localeCompare(b.employee,'pl');
+    if(sa===null)return 1;
+    if(sb===null)return-1;
+    return sb-sa||a.employee.localeCompare(b.employee,'pl')
+  });
+  $('rt').innerHTML=rows.map(function(r){
+    var sc=scoreRating(r),pl=places[r.employee]===null?'—':places[r.employee];
+    return'<tr data-emp="'+esc(r.employee)+'"><td><b>'+pl+'</b></td><td><b>'+esc(r.employee)+'</b></td>'+
+      ['knowledge','efficiency','accuracy','quality'].map(function(k){
+        return'<td><select class="rating" data-k="'+k+'" onchange="ratingChanged()">'+ratingOpts(r[k]||'-')+'</select></td>'
+      }).join('')+
+      '<td><b>'+(sc===null?'—':sc+'/20')+'</b></td></tr>'
+  }).join('');
+  if(ME.role==='viewer'){
+    document.querySelectorAll('.rating').forEach(function(x){x.disabled=true});
+    $('saveratings').style.display='none'
+  }else if($('saveratings'))$('saveratings').style.display=''
+}
+function ratingChanged(){
+  var rows=collectRatings();
+  renderRatings(rows)
+}
 function collectRatings(){return[].slice.call($('rt').querySelectorAll('tr')).map(function(tr){var r={employee:tr.dataset.emp};tr.querySelectorAll('.rating').forEach(function(s){r[s.dataset.k]=s.value});return r})}
 async function saveRatings(){await api('/api/ratings',{method:'POST',body:JSON.stringify({ratings:collectRatings()})});D=await api('/api/data');renderRatings();alert('Oceny zapisane')}
 function syncSettingInputs(){document.querySelectorAll('#settings [data-k][data-i]').forEach(function(x){if(D.settings[x.dataset.k])D.settings[x.dataset.k][+x.dataset.i]=x.value});syncSystemBreakInputs();syncEmployeeBreakGroupInputs();syncSectionsIntoTypes()}
