@@ -2765,6 +2765,7 @@ var refreshing=false;async function refreshData(force){
     if(force&&b&&b.textContent==='Odświeżanie…'){b.textContent=oldText;b.disabled=false}
   }
 }
-setInterval(function(){refreshData(false)},5000);sessionStorage.removeItem(TOKEN_KEY);$('login').style.display='grid';$('app').style.display='none';
+setInterval(function(){if(!document.hidden)refreshData(false)},30000);
+document.addEventListener('visibilitychange',function(){if(!document.hidden)refreshData(false)});sessionStorage.removeItem(TOKEN_KEY);$('login').style.display='grid';$('app').style.display='none';
 
 </script></body></html>
