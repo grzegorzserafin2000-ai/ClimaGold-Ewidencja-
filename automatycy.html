@@ -2747,6 +2747,14 @@ var refreshing=false;async function refreshData(force){
   var b=$('refreshBtn'),oldText=b?b.textContent:'Odśwież';
   if(force&&b){b.disabled=true;b.textContent='Odświeżanie…'}
   try{
+    // Lightweight check per hall; full data is requested only when its version changed.
+    // Fall back to full refresh if the server has not been updated yet.
+    if(!force){
+      try{
+        var v=await api('/api/version');
+        if(v&&v.version!==undefined&&D&&D._online&&Number(v.version)===Number(D._online.version))return;
+      }catch(versionError){}
+    }
     var n=await api('/api/data');
     var changed=JSON.stringify(n)!==JSON.stringify(D);
     D=n;
