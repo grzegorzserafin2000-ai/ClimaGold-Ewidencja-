@@ -2666,8 +2666,11 @@ function syncSettingInputs(){document.querySelectorAll('#settings [data-k][data-
 function renderSettings(){
   var keys=['employees','types','systems'];
   keys.forEach(function(k){
-    var arr=k==='types'?visibleDeviceTypes():(D.settings[k]||[]);
-    $(k).innerHTML=arr.map(function(x,i){
+    // W ustawieniach pokazujemy także puste, nowo dodane typy.
+    // Indeksy odnoszą się do oryginalnej tablicy, również gdy zawiera ukryte sekcje.
+    var items=(D.settings[k]||[]).map(function(x,i){return {value:x,index:i}});
+    if(k==='types')items=items.filter(function(item){return String(item.value).indexOf(SECTION_PREFIX)!==0});
+    $(k).innerHTML=items.map(function(item){var x=item.value,i=item.index;
       var move='<button class="btn secondary" style="padding:6px 9px" title="Przenieś wyżej" onclick="moveSetting(\''+k+'\','+i+',-1)">↑</button><button class="btn secondary" style="padding:6px 9px" title="Przenieś niżej" onclick="moveSetting(\''+k+'\','+i+',1)">↓</button>';
       return'<div class="listrow"><input value="'+esc(x)+'" data-k="'+k+'" data-i="'+i+'">'+move+'<button class="btn danger" onclick="rmSetting(\''+k+'\','+i+')">×</button></div>'
     }).join('')
