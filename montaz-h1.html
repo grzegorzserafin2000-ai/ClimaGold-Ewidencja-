@@ -1678,7 +1678,7 @@ function employeeBlockHtml(i,e,cs){
   var lab=MAX_EMP===1?'Pracownik':'Pracownik '+(i+1);
   var remove='<button type="button" class="btn danger empremove" onclick="removeEmployeeBlock(this)">Usuń tego pracownika</button>';
   var groupUi=hasBreakGroups()?'<div class="field"><label>Grupa przerw</label><div class="groupbadge">Grupa A</div></div>':'';
-  return'<div class="empblock" data-slot="'+i+'"><div class="empgrid"><div class="field"><label>'+lab+'</label><select class="emp" onchange="employeeChanged(this)">'+workerSelectOptions((e.employees||[])[i]||'')+'</select></div>'+groupUi+'<input class="breakgroup" type="hidden" value="A"><input class="corr" type="hidden" value="'+(cs[i]||0)+'"></div><div class="participation"><div class="partbuttons"><button type="button" class="btn secondary" onclick="toggleParticipation(this,\'from\')">Dołącza do pracy</button><button type="button" class="btn secondary" onclick="toggleParticipation(this,\'to\')">Kończy pracę</button></div><div class="partfields frompart"><b class="partlabel">Dołącza</b><input class="pfromd" type="date" onchange="updatePartStatus(this.closest(\'.empblock\'))"><input class="pfromt" type="time" onchange="updatePartStatus(this.closest(\'.empblock\'))"><button type="button" class="btn secondary" onclick="clearParticipation(this,\'from\')">Usuń</button></div><div class="partfields topart"><b class="partlabel">Kończy</b><input class="ptod" type="date" onchange="updatePartStatus(this.closest(\'.empblock\'))"><input class="ptot" type="time" onchange="updatePartStatus(this.closest(\'.empblock\'))"><button type="button" class="btn secondary" onclick="clearParticipation(this,\'to\')">Usuń</button></div><div class="muted partstatus">Bez zmian = pracuje od początku do końca.</div></div><div class="breakgroupnote">Planowe przerwy</div><div class="pausebox"><div class="empname">Dodatkowe przerwy / wstrzymania</div><div class="pausebuttons"><button type="button" class="btn secondary" onclick="pauseWork(this)">Wstrzymał pracę</button><button type="button" class="btn secondary" onclick="resumeWork(this)">Rozpoczął pracę</button></div><div class="pauselist"></div><div class="muted pausestatus">Brak przerw.</div></div><div class="empname">System pracy tego pracownika</div><div class="muted" style="margin-bottom:6px">Pokazywane są tylko dni, w których ten pracownik uczestniczy w pracy przy centrali.</div><div class="empsystems"></div>'+remove+'</div>'
+  return'<div class="empblock" data-slot="'+i+'"><div class="empgrid"><div class="field"><label>'+lab+'</label><select class="emp" onchange="employeeChanged(this)">'+workerSelectOptions((e.employees||[])[i]||'')+'</select></div>'+groupUi+'<input class="breakgroup" type="hidden" value="A"><input class="corr" type="hidden" value="'+(cs[i]||0)+'"></div><div class="participation"><div class="partbuttons"><button type="button" class="btn secondary" onclick="toggleParticipation(this,\'from\')">Dołącza do pracy</button><button type="button" class="btn secondary" onclick="toggleParticipation(this,\'to\')">Kończy pracę</button></div><div class="partfields frompart"><b class="partlabel">Dołącza</b><input class="pfromd" type="date" onchange="participationChanged(this)"><input class="pfromt" type="time" onchange="updatePartStatus(this.closest(\'.empblock\'))"><button type="button" class="btn secondary" onclick="clearParticipation(this,\'from\')">Usuń</button></div><div class="partfields topart"><b class="partlabel">Kończy</b><input class="ptod" type="date" onchange="participationChanged(this)"><input class="ptot" type="time" onchange="updatePartStatus(this.closest(\'.empblock\'))"><button type="button" class="btn secondary" onclick="clearParticipation(this,\'to\')">Usuń</button></div><div class="muted partstatus">Bez zmian = pracuje od początku do końca.</div></div><div class="breakgroupnote">Planowe przerwy</div><div class="pausebox"><div class="empname">Dodatkowe przerwy / wstrzymania</div><div class="pausebuttons"><button type="button" class="btn secondary" onclick="pauseWork(this)">Wstrzymał pracę</button><button type="button" class="btn secondary" onclick="resumeWork(this)">Rozpoczął pracę</button><button type="button" class="btn secondary" onclick="finishWorkAtPause(this)">Kończy pracę od wstrzymania</button></div><div class="pauselist"></div><div class="muted pausestatus">Brak przerw.</div></div><div class="empname">System pracy tego pracownika</div><div class="muted" style="margin-bottom:6px">Pokazywane są tylko dni, w których ten pracownik uczestniczy w pracy przy centrali.</div><div class="empsystems"></div>'+remove+'</div>'
 }
 function renumberEmployeeBlocks(){
   [].slice.call(document.querySelectorAll('.empblock')).forEach(function(block,i){
@@ -2380,10 +2380,15 @@ function restoreParticipationControls(existing){
 }
 
 
+function blockParticipationEnded(block){
+  var d=block.querySelector('.ptod').value,t=block.querySelector('.ptot').value;
+  if(!d||!t)return false;
+  return d+'T'+t<=localDate(new Date())+'T'+pauseNowTime()
+}
 function selectedEmployeeBlocks(){
   return[].slice.call(document.querySelectorAll('.empblock')).filter(function(block){
     var s=block.querySelector('.emp');
-    return s&&String(s.value||'').trim()
+    return s&&String(s.value||'').trim()&&!blockParticipationEnded(block)
   })
 }
 function blockOpenPause(block){
@@ -2396,7 +2401,7 @@ function blockOpenPause(block){
 function updateCentralPauseStatus(){
   var el=$('centralPauseStatus');if(!el)return;
   var blocks=selectedEmployeeBlocks();
-  if(!blocks.length){el.textContent='Wybierz pracowników.';return}
+  if(!blocks.length){el.textContent='Brak pracowników z aktywnym udziałem.';return}
   var paused=blocks.filter(function(block){return !!blockOpenPause(block)}).length;
   if(paused===blocks.length)el.textContent='Centrala wstrzymana — wszyscy pracownicy.';
   else if(paused>0)el.textContent='Wstrzymanie indywidualne: '+paused+' z '+blocks.length+' pracowników.';
@@ -2453,8 +2458,35 @@ function renderPauseControls(block,pauses){
   var box=block.querySelector('.pauselist');pauses=Array.isArray(pauses)?pauses:[];
   box.innerHTML=pauses.map(function(p){return'<div class="pauserow"><b>Od</b><input class="pausefromd" type="date" value="'+esc(p.from_date||'')+'" onchange="updatePauseStatus(this.closest(\'.empblock\'))"><input class="pausefromt" type="time" value="'+esc(p.from_time||'')+'" onchange="updatePauseStatus(this.closest(\'.empblock\'))"><b class="pause-to-label">Do</b><input class="pausetod" type="date" value="'+esc(p.to_date||'')+'" onchange="updatePauseStatus(this.closest(\'.empblock\'))"><input class="pausetot" type="time" value="'+esc(p.to_time||'')+'" onchange="updatePauseStatus(this.closest(\'.empblock\'))"><button type="button" class="btn danger pause-delete" onclick="removePause(this)">Usuń</button></div>'}).join('');updatePauseStatus(block)
 }
-function pauseWork(btn){var block=btn.closest('.empblock'),p=collectPauses(block);if(p.some(function(x){return x.from_date&&x.from_time&&!(x.to_date&&x.to_time)})){alert('Praca jest już wstrzymana.');return}p.push({from_date:pauseNowDate(),from_time:pauseNowTime(),to_date:'',to_time:''});renderPauseControls(block,p)}
-function resumeWork(btn){var block=btn.closest('.empblock'),p=collectPauses(block),i;for(i=p.length-1;i>=0;i--)if(p[i].from_date&&p[i].from_time&&!(p[i].to_date&&p[i].to_time))break;if(i<0){alert('Najpierw kliknij „Wstrzymał pracę”.');return}p[i].to_date=pauseNowDate();p[i].to_time=pauseNowTime();renderPauseControls(block,p)}
+function pauseWork(btn){var block=btn.closest('.empblock'),p=collectPauses(block);if(blockParticipationEnded(block)){alert('Pracownik już zakończył udział w tej pracy.');return}if(p.some(function(x){return x.from_date&&x.from_time&&!(x.to_date&&x.to_time)})){alert('Praca jest już wstrzymana.');return}p.push({from_date:pauseNowDate(),from_time:pauseNowTime(),to_date:'',to_time:''});renderPauseControls(block,p)}
+function resumeWork(btn){var block=btn.closest('.empblock'),p=collectPauses(block),i;if(blockParticipationEnded(block)){alert('Pracownik już zakończył udział w tej pracy.');return}for(i=p.length-1;i>=0;i--)if(p[i].from_date&&p[i].from_time&&!(p[i].to_date&&p[i].to_time))break;if(i<0){alert('Najpierw kliknij „Wstrzymał pracę”.');return}p[i].to_date=pauseNowDate();p[i].to_time=pauseNowTime();renderPauseControls(block,p)}
+function finishWorkAtPause(btn){
+  var block=btn.closest('.empblock'),pauses=collectPauses(block),i;
+  for(i=pauses.length-1;i>=0;i--){
+    if(pauses[i].from_date&&pauses[i].from_time&&!(pauses[i].to_date&&pauses[i].to_time))break
+  }
+  if(i<0){alert('Najpierw wstrzymaj pracę tego pracownika.');return}
+  var p=pauses[i],finish=p.from_date+'T'+p.from_time;
+  var startDate=$('sd').value,startTime=$('stt').value;
+  if(startDate&&startTime&&finish<startDate+'T'+startTime){
+    alert('Data wstrzymania jest wcześniejsza niż rozpoczęcie pracy przy centrali. Popraw datę wstrzymania.');return
+  }
+  var fromDate=block.querySelector('.pfromd').value,fromTime=block.querySelector('.pfromt').value;
+  if(fromDate&&fromTime&&finish<fromDate+'T'+fromTime){
+    alert('Data wstrzymania jest wcześniejsza niż dołączenie pracownika. Popraw datę wstrzymania.');return
+  }
+  var endDate=block.querySelector('.ptod').value,endTime=block.querySelector('.ptot').value;
+  if(endDate&&endTime){
+    alert('Ten pracownik ma już ustalone zakończenie pracy. Sprawdź pole „Kończy pracę”.');return
+  }
+  if(!confirm('Zakończyć pracę tego pracownika od '+p.from_date+' o '+p.from_time+'?\\nNiedokończone wstrzymanie zostanie zamienione na zakończenie jego udziału.'))return;
+  block.querySelector('.ptod').value=p.from_date;
+  block.querySelector('.ptot').value=p.from_time;
+  block.querySelector('.topart').classList.add('open');
+  pauses.splice(i,1);
+  renderPauseControls(block,pauses);
+  participationChanged(block)
+}
 function removePause(btn){var block=btn.closest('.empblock');btn.closest('.pauserow').remove();updatePauseStatus(block)}
 function restorePauseControls(existing){existing=existing||[];document.querySelectorAll('.empblock').forEach(function(block,i){var emp=block.querySelector('.emp').value,r=existing.find(function(x,j){return(x.employee&&x.employee===emp)||(!x.employee&&j===i)})||existing[i]||{};renderPauseControls(block,r.pauses||[])})}
 
@@ -2464,7 +2496,7 @@ function renderEmpDayBox(block,existing){
   if(b<a){box.innerHTML='<span class="error">Błędny zakres dat.</span>';return}
   var fd=block.querySelector('.pfromd')&&block.querySelector('.pfromd').value,td=block.querySelector('.ptod')&&block.querySelector('.ptod').value;
   if(fd){var fa=new Date(fd+'T00:00');if(fa>a)a=fa;if(!$('ed').value&&fa>b)b=fa}
-  if(td){var tb=new Date(td+'T00:00');if(tb<b)b=tb}
+  if(td){var tb=new Date(td+'T00:00');if(!$('ed').value&&tb>b)b=tb;if(tb<b)b=tb}
   if(b<a){box.innerHTML='<span class="muted">Brak dni pracy w wybranym zakresie udziału.</span>';return}
   var prev={};(existing||[]).forEach(function(x){prev[x.date]=x});box.innerHTML='';
   for(var d=new Date(a);d<=b;d.setDate(d.getDate()+1)){
