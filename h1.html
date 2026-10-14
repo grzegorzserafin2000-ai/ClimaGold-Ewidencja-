@@ -2300,7 +2300,9 @@ function participationChanged(el){
   renderEmpDayBox(block,existing)
 }
 function smartPartDate(kind){
-  var today=localDate(new Date()),sd=$('sd').value,ed=$('ed').value||sd;
+  var today=localDate(new Date()),sd=$('sd').value,ed=$('ed').value;
+  // Otwarta centrala: data dolaczenia/zakonczenia udzialu to dzis, nie data startu centrali.
+  if(!ed)return (!sd||today>=sd)?today:sd;
   if(sd&&today>=sd&&today<=ed)return today;
   return kind==='from'?sd:ed
 }
@@ -2430,7 +2432,7 @@ function renderEmpDayBox(block,existing){
   if(!a){box.innerHTML='<span class="muted">Ustaw datę rozpoczęcia.</span>';return}
   if(b<a){box.innerHTML='<span class="error">Błędny zakres dat.</span>';return}
   var fd=block.querySelector('.pfromd')&&block.querySelector('.pfromd').value,td=block.querySelector('.ptod')&&block.querySelector('.ptod').value;
-  if(fd){var fa=new Date(fd+'T00:00');if(fa>a)a=fa}
+  if(fd){var fa=new Date(fd+'T00:00');if(fa>a)a=fa;if(!$('ed').value&&fa>b)b=fa}
   if(td){var tb=new Date(td+'T00:00');if(tb<b)b=tb}
   if(b<a){box.innerHTML='<span class="muted">Brak dni pracy w wybranym zakresie udziału.</span>';return}
   var prev={};(existing||[]).forEach(function(x){prev[x.date]=x});box.innerHTML='';
