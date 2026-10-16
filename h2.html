@@ -1335,7 +1335,7 @@ th{background:#f6f8f9}
   </div>
 </section>
 
-<section id="entries" class="view"><div class="toolbar"><button id="addbtn" class="btn" onclick="openEntry()">+ Dodaj wpis</button><input id="entryMonth" type="month" onchange="entryMonthChanged()" style="padding:10px;border:1px solid var(--line);border-radius:9px"><button id="entryAllBtn" class="btn secondary entryfilter active" onclick="setEntryFilter('all')">Wszystkie</button><button id="entryOngoingBtn" class="btn secondary entryfilter" onclick="setEntryFilter('ongoing')">W TOKU</button><button id="entryStoppedBtn" class="btn secondary entryfilter" onclick="setEntryFilter('stopped')">ZATRZYMANE</button><button id="entryDoneBtn" class="btn secondary entryfilter" onclick="setEntryFilter('done')">ZAKOŃCZONE</button><select id="entryTypeFilter" onchange="renderEntries()" class="entryselect"><option value="">Wszystkie rodzaje central</option></select><select id="entryEmployeeFilter" onchange="renderEntries()" class="entryselect"><option value="">Wszyscy pracownicy</option></select><input id="search" placeholder="Szukaj nr, pracownika lub typu" oninput="renderEntries()" style="padding:10px;border:1px solid var(--line);border-radius:9px;min-width:240px"></div><div class="tablewrap"><table><thead><tr><th class="actioncol">Akcje</th><th>Data</th><th>Nr</th><th>Typ</th><th>Pracownicy</th><th>System</th><th>Czas</th><th>Uwagi</th></tr></thead><tbody id="et"></tbody></table></div></section>
+<section id="entries" class="view"><div class="toolbar"><button id="addbtn" class="btn" onclick="openEntry()">+ Dodaj wpis</button><button id="undoEntryDeleteBtn" class="btn secondary" style="display:none" onclick="undoDeletedEntry()">↶ Cofnij usunięcie</button><input id="entryMonth" type="month" onchange="entryMonthChanged()" style="padding:10px;border:1px solid var(--line);border-radius:9px"><button id="entryAllBtn" class="btn secondary entryfilter active" onclick="setEntryFilter('all')">Wszystkie</button><button id="entryOngoingBtn" class="btn secondary entryfilter" onclick="setEntryFilter('ongoing')">W TOKU</button><button id="entryStoppedBtn" class="btn secondary entryfilter" onclick="setEntryFilter('stopped')">ZATRZYMANE</button><button id="entryDoneBtn" class="btn secondary entryfilter" onclick="setEntryFilter('done')">ZAKOŃCZONE</button><select id="entryTypeFilter" onchange="renderEntries()" class="entryselect"><option value="">Wszystkie rodzaje central</option></select><select id="entryEmployeeFilter" onchange="renderEntries()" class="entryselect"><option value="">Wszyscy pracownicy</option></select><input id="search" placeholder="Szukaj nr, pracownika lub typu" oninput="renderEntries()" style="padding:10px;border:1px solid var(--line);border-radius:9px;min-width:240px"></div><div class="tablewrap"><table><thead><tr><th class="actioncol">Akcje</th><th>Data</th><th>Nr</th><th>Typ</th><th>Pracownicy</th><th>System</th><th>Czas</th><th>Uwagi</th></tr></thead><tbody id="et"></tbody></table></div></section>
 <section id="stats" class="view">
   <div class="toolbar">
     <input id="month" type="month" onchange="renderStats()" style="padding:9px">
@@ -2352,6 +2352,8 @@ function entryMonthChanged(){
 }
 function clearEntryMonth(){setEntryFilter('all')}
 function renderEntries(){
+  var undoBtn=$('undoEntryDeleteBtn'),deleted=(D&&Array.isArray(D.deleted_entries)?D.deleted_entries:[]);
+  if(undoBtn){undoBtn.style.display=ME&&ME.role==='admin'&&deleted.length?'inline-block':'none';if(deleted.length)undoBtn.title='Ostatnio usunięta centrala: '+(deleted[0].entry&&deleted[0].entry.number||'bez numeru')}
   var q=($('search').value||'').toLowerCase(),m=$('entryMonth')?$('entryMonth').value:'';
   var typeFilter=$('entryTypeFilter')?$('entryTypeFilter').value:'',employeeFilter=$('entryEmployeeFilter')?$('entryEmployeeFilter').value:'';
   var first=m?m+'-01':'',last=m?m+'-31':'';
@@ -2614,7 +2616,21 @@ function quickStartWork(){var n=quickNowParts();$('sd').value=n.date;$('stt').va
 function quickEndWork(){var n=quickNowParts();if(!$('sd').value)$('sd').value=n.date;if(!$('stt').value)$('stt').value=n.time;$('ed').value=n.date;$('ett').value=n.time;refreshEmpDays()}
 function closeEntry(){$('modal').classList.remove('open')}
 async function saveEntry(){var employees=[],corrections=[],employee_systems=[];document.querySelectorAll('.empblock').forEach(function(block){var emp=block.querySelector('.emp').value;if(!emp)return;var group=(block.querySelector('.breakgroup')||{}).value||'A';employees.push(emp);corrections.push(+block.querySelector('.corr').value||0);employee_systems.push({employee:emp,break_group:group,days:[].slice.call(block.querySelectorAll('.empdayrow')).map(function(r){return{date:r.dataset.date,system:r.querySelector('select').value,breaks:dayBreakSnapshot(r,group)}}),work_from_date:block.querySelector('.pfromd').value,work_from_time:block.querySelector('.pfromt').value,work_to_date:block.querySelector('.ptod').value,work_to_time:block.querySelector('.ptot').value,pauses:collectPauses(block)})});var section=(isMontazHall()&&isSplitDeviceType($('dt').value))?$('section').value:'';if(isMontazHall()&&isSplitDeviceType($('dt').value)&&!section){alert('Wybierz sekcję centrali dzielonej.');return}var x={id:$('eid').value?+$('eid').value:undefined,start_date:$('sd').value,end_date:$('ed').value,device_type:$('dt').value,number:$('no').value,start_time:$('stt').value,end_time:$('ett').value,day_systems:employee_systems[0]?employee_systems[0].days:[],employee_systems:employee_systems,employees:employees,corrections:corrections,notes:notesWithSection($('notes').value,section),mark_color:$('markcolor').value,additional_employees:employees.filter(function(n){return extraWorkers().indexOf(n)>=0||(D.entries||[]).some(function(old){return +old.id===+($('eid').value||0)&&entryExtraNames(old).indexOf(n)>=0})})};if(!x.start_date||!x.start_time){alert('Uzupełnij datę i godzinę rozpoczęcia');return}if((x.end_date&&!x.end_time)||(!x.end_date&&x.end_time)){alert('Uzupełnij jednocześnie datę i godzinę zakończenia');return}if(x.end_date&&x.end_date<x.start_date){alert('Błędna data zakończenia');return}if(HALL==='AUTO'&&x.employees.filter(function(n){return extraWorkers().indexOf(n)<0}).length>1){alert('Automatycy: tylko jeden stały pracownik; można dodać pomoc serwisu.');return}if(!saturdayNeedsConfirmation(x))return;await api('/api/entry',{method:'POST',body:JSON.stringify(x)});D=await api('/api/data');closeEntry();renderAll()}
-async function delEntry(id){if(!confirm('Usunąć wpis?'))return;await api('/api/entry/'+id,{method:'DELETE'});D=await api('/api/data');renderAll()}
+async function delEntry(id){
+  var old=(D.entries||[]).find(function(e){return +e.id===+id});
+  if(!confirm('Usunąć wpis centrali '+(old&&old.number||'')+'? Będzie można go przywrócić przyciskiem „Cofnij usunięcie”.'))return;
+  try{await api('/api/entry/'+id,{method:'DELETE'});D=await api('/api/data');renderAll()}
+  catch(e){alert('Nie udało się usunąć wpisu: '+e.message)}
+}
+async function undoDeletedEntry(){
+  if(!ME||ME.role!=='admin')return;
+  var last=D&&Array.isArray(D.deleted_entries)&&D.deleted_entries[0];if(!last)return;
+  if(!confirm('Przywrócić usuniętą centralę '+(last.entry&&last.entry.number||'bez numeru')+'?'))return;
+  try{
+    await api('/api/entry/undo',{method:'POST',body:JSON.stringify({token:last.token})});
+    D=await api('/api/data');renderAll()
+  }catch(e){alert('Nie udało się przywrócić wpisu: '+e.message)}
+}
 function rankFullRows(rows){
   var ranked=rows.filter(function(x){return x.full>0}).slice().sort(function(a,b){return a.avgFull-b.avgFull||a.name.localeCompare(b.name,'pl')});
   var lastAvg=null,place=0;
