@@ -100,16 +100,42 @@ async function handleApi(req:Request,hall:string,path:string){
     return json({version:data.version});
   }
   if(path==="/api/data"&&method==="GET"){
-    const row=await loadState(hall), state=structuredClone(row.data||{}); delete state.users; state.users=u.role==="admin"?await listUsers(hall):[]; state._online={version:row.version,updated_at:(await db.from("climagold_hall_state").select("updated_at,updated_by").eq("hall",hall).single()).data?.updated_at}; return json(state);
+    const row=await loadState(hall), state=structuredClone(row.data||{}); delete state.users; if(u.role!=="admin")delete state.deleted_entries; state.users=u.role==="admin"?await listUsers(hall):[]; state._online={version:row.version,updated_at:(await db.from("climagold_hall_state").select("updated_at,updated_by").eq("hall",hall).single()).data?.updated_at}; return json(state);
   }
   if(path==="/api/entry"&&method==="POST"){
     requireRole(u,["admin","supervisor"]); const x:any=await body(req);
     const clean:any={id:x.id?Number(x.id):undefined,start_date:String(x.start_date||""),end_date:String(x.end_date||""),device_type:String(x.device_type||""),number:String(x.number||""),start_time:String(x.start_time||""),end_time:String(x.end_time||""),day_systems:Array.isArray(x.day_systems)?x.day_systems:[],employee_systems:Array.isArray(x.employee_systems)?x.employee_systems:[],employee_participation:Array.isArray(x.employee_participation)?x.employee_participation.slice(0,10).map((p:any)=>({employee:String(p?.employee||""),start_at:String(p?.start_at||""),end_at:String(p?.end_at||"")})):[],employees:Array.isArray(x.employees)?x.employees.slice(0,10):[],additional_employees:Array.isArray(x.additional_employees)?x.additional_employees.slice(0,10):[],corrections:Array.isArray(x.corrections)?x.corrections.slice(0,10).map((v:any)=>Number(v)||0):[0,0,0,0,0,0,0,0,0,0],notes:String(x.notes||""),mark_color:String(x.mark_color||"")};
     if(!clean.start_date||!clean.start_time)return json({error:"Uzupełnij datę i godzinę rozpoczęcia."},400);
-    await mutateState(hall,u.username,(s:any)=>{s.entries=Array.isArray(s.entries)?s.entries:[]; if(clean.id){const i=s.entries.findIndex((e:any)=>Number(e.id)===clean.id); if(i<0)throw Object.assign(new Error("Nie znaleziono wpisu."),{status:404}); s.entries[i]=clean;}else{clean.id=s.entries.reduce((m:number,e:any)=>Math.max(m,Number(e.id)||0),0)+1;s.entries.unshift(clean)}}); return json({ok:true,id:clean.id});
+    await mutateState(hall,u.username,(s:any)=>{s.entries=Array.isArray(s.entries)?s.entries:[]; if(clean.id){const i=s.entries.findIndex((e:any)=>Number(e.id)===clean.id); if(i<0)throw Object.assign(new Error("Nie znaleziono wpisu."),{status:404}); s.entries[i]=clean;}else{clean.id=[...(s.entries||[]),...(s.deleted_entries||[]).map((z:any)=>z.entry||{})].reduce((m:number,e:any)=>Math.max(m,Number(e.id)||0),0)+1;s.entries.unshift(clean)}}); return json({ok:true,id:clean.id});
   }
   if(path.startsWith("/api/entry/")&&method==="DELETE"){
-    requireRole(u,["admin"]); const id=Number(path.split("/").pop()); await mutateState(hall,u.username,(s:any)=>{s.entries=(Array.isArray(s.entries)?s.entries:[]).filter((e:any)=>Number(e.id)!==id)}); return json({ok:true});
+    requireRole(u,["admin"]); const id=Number(path.split("/").pop()),token=crypto.randomUUID();
+    await mutateState(hall,u.username,(s:any)=>{
+      s.entries=Array.isArray(s.entries)?s.entries:[];
+      const i=s.entries.findIndex((e:any)=>Number(e.id)===id);
+      if(i<0)throw Object.assign(new Error("Nie znaleziono wpisu."),{status:404});
+      const removed=s.entries.splice(i,1)[0];
+      s.deleted_entries=[{token,entry:removed,deleted_at:new Date().toISOString(),deleted_by:u.username},...(Array.isArray(s.deleted_entries)?s.deleted_entries:[])].slice(0,30);
+    });
+    return json({ok:true});
+  }
+  if(path==="/api/entry/undo"&&method==="POST"){
+    requireRole(u,["admin"]); const x:any=await body(req),token=String(x.token||"");
+    if(!token)return json({error:"Nie wskazano usuniętego wpisu."},400);
+    let restoredId=0;
+    await mutateState(hall,u.username,(s:any)=>{
+      s.entries=Array.isArray(s.entries)?s.entries:[];
+      s.deleted_entries=Array.isArray(s.deleted_entries)?s.deleted_entries:[];
+      const i=s.deleted_entries.findIndex((z:any)=>z.token===token);
+      if(i<0)throw Object.assign(new Error("Nie znaleziono usuniętego wpisu. Odśwież ewidencję."),{status:404});
+      const saved=structuredClone(s.deleted_entries[i].entry);
+      const used=new Set(s.entries.map((e:any)=>Number(e.id)));
+      if(used.has(Number(saved.id)))saved.id=[...s.entries,...s.deleted_entries.map((z:any)=>z.entry||{})].reduce((m:number,e:any)=>Math.max(m,Number(e.id)||0),0)+1;
+      restoredId=Number(saved.id);
+      s.entries.unshift(saved);
+      s.deleted_entries.splice(i,1);
+    });
+    return json({ok:true,id:restoredId});
   }
   if(path==="/api/ratings"&&method==="POST"){
     requireRole(u,["admin","supervisor"]); const x:any=await body(req); if(!Array.isArray(x.ratings))return json({error:"Nieprawidłowe oceny."},400); await mutateState(hall,u.username,(s:any)=>{s.ratings=x.ratings}); return json({ok:true});
