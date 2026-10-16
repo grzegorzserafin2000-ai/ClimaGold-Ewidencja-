@@ -1231,6 +1231,15 @@ th{background:#f6f8f9}
   color:#fff !important;
 }
 
+
+/* Wyjątki systemu pracy jedynie na wybrany dzień */
+.daily-exceptions{margin:0 0 16px}
+.daily-exceptions-panel{margin-top:8px;padding:14px;border:1px solid var(--line);border-radius:14px;background:var(--card)}
+.daily-exceptions-panel[hidden]{display:none}
+.daily-exception-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:10px}
+.daily-exception-row select{flex:1 1 180px;min-width:0;padding:10px;border:1px solid var(--line);border-radius:9px;background:#fff}
+.daily-exceptions-actions{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 6px}
+@media(max-width:500px){.daily-exception-row select{flex:1 1 100%}.daily-exception-row .btn{margin-left:auto}}
 </style></head><body>
 <div id="login" class="login"><div class="box"><button type="button" class="btn secondary" onclick="location.href='./index.html'" style="width:100%;margin:0 0 14px">← Wróć do wyboru działu</button><div class="brand"><span class="brandmark" aria-hidden="true"><i></i><i></i><i></i></span><span class="brandtext"><span class="clima">Clima</span><span class="gold">Gold</span></span></div><h2>Montaż H1</h2><div class="hint">Wspólna baza online</div><div class="field"><label>Login</label><input id="lu" value="brygadzista" autocomplete="username"></div><div class="field"><label>Hasło</label><input id="lp" type="password" autocomplete="current-password"></div><button class="btn" onclick="doLogin()">Zaloguj</button><div id="le" class="error"></div></div></div>
 <div id="app" class="app"><aside class="side"><div class="brand"><span class="brandmark" aria-hidden="true"><i></i><i></i><i></i></span><span class="brandtext"><span class="clima">Clima</span><span class="gold">Gold</span></span></div><span class="hall">MONTAŻ H1</span><div class="nav">
@@ -1263,6 +1272,19 @@ th{background:#f6f8f9}
         <option value="">Wybierz system na dziś</option>
       </select>
       <div class="today-system-status" id="todaySystemStatus"></div>
+    </div>
+  </div>
+
+  <div class="daily-exceptions">
+    <button type="button" class="btn secondary" id="dailyExceptionsToggle" onclick="toggleDailyExceptions()">Wyjątki pracowników <span id="dailyExceptionsCount"></span></button>
+    <div id="dailyExceptionsPanel" class="daily-exceptions-panel" hidden>
+      <div class="muted">Na dzisiaj: każdemu pracownikowi możesz przypisać inny system. Pozostali mają zwykły system działu.</div>
+      <div id="dailyExceptionsRows"></div>
+      <div class="daily-exceptions-actions">
+        <button type="button" class="btn secondary" id="addDailyExceptionBtn" onclick="addDailyExceptionRow()">+ Dodaj pracownika</button>
+        <button type="button" class="btn" id="saveDailyExceptionsBtn" onclick="saveDailyExceptions()">Zapisz wyjątki</button>
+      </div>
+      <div class="muted" id="dailyExceptionsStatus"></div>
     </div>
   </div>
 
@@ -2127,8 +2149,8 @@ function configuredSystemForDate(ds){
   var m=ensureDailySystems(),s=m[ds]||'';
   return (D.settings.systems||[]).indexOf(s)>=0?s:''
 }
-function defaultSystemForDate(ds){
-  return configuredSystemForDate(ds)||(D.settings.systems||[])[0]||''
+function defaultSystemForDate(ds,emp){
+  return (emp?employeeSystemException(ds,emp):'')||configuredSystemForDate(ds)||(D.settings.systems||[])[0]||''
 }
 function renderTodaySystemPicker(){
   var sel=$('todaySystemSelect'),card=$('todaySystemCard'),dateEl=$('todaySystemDate'),status=$('todaySystemStatus');
@@ -2158,6 +2180,72 @@ async function saveTodaySystem(system){
     if(status)status.textContent='Nie udało się zapisać systemu.';
     if(sel)sel.disabled=false
   }
+}
+
+
+function employeeDailyOverrides(){
+  var map=D&&D.settings&&D.settings.employee_daily_systems;
+  return map&&typeof map==='object'&&!Array.isArray(map)?map:{}
+}
+function employeeSystemException(ds,emp){
+  var overrides=employeeDailyOverrides(),byDate=overrides[ds]||{},chosen=byDate[emp]||'';
+  return (D.settings.systems||[]).indexOf(chosen)>=0?chosen:''
+}
+function toggleDailyExceptions(){
+  var panel=$('dailyExceptionsPanel');if(!panel)return;
+  panel.hidden=!panel.hidden;
+  if(!panel.hidden)renderDailyExceptions()
+}
+function dailyExceptionRow(name,system){
+  var container=$('dailyExceptionsRows');if(!container)return;
+  var available=allWorkers(),systems=D.settings.systems||[];
+  var row=document.createElement('div');row.className='daily-exception-row';
+  var names='<option value="">Wybierz pracownika</option>'+available.map(function(n){return'<option value="'+esc(n)+'"'+(n===name?' selected':'')+'>'+esc(n)+'</option>'}).join('');
+  var sys='<option value="">Wybierz system</option>'+systems.map(function(v){return'<option value="'+esc(v)+'"'+(v===system?' selected':'')+'>'+esc(v)+'</option>'}).join('');
+  row.innerHTML='<select class="daily-exception-emp" aria-label="Pracownik">'+names+'</select><select class="daily-exception-system" aria-label="System pracy">'+sys+'</select><button type="button" class="btn danger" onclick="removeDailyExceptionRow(this)">Usuń</button>';
+  container.appendChild(row)
+}
+function addDailyExceptionRow(){
+  if(!ME||ME.role==='viewer')return;
+  dailyExceptionRow('','')
+}
+function removeDailyExceptionRow(btn){
+  if(!ME||ME.role==='viewer')return;
+  btn.closest('.daily-exception-row').remove()
+}
+function renderDailyExceptions(){
+  var container=$('dailyExceptionsRows'),counter=$('dailyExceptionsCount');
+  if(!container||!D)return;
+  var byDate=employeeDailyOverrides()[localDate(new Date())]||{},workers=allWorkers(),valid=D.settings.systems||[];
+  var rows=Object.keys(byDate).filter(function(n){return workers.indexOf(n)>=0&&valid.indexOf(byDate[n])>=0});
+  if(counter)counter.textContent=rows.length?'('+rows.length+')':'';
+  container.innerHTML='';
+  rows.forEach(function(n){dailyExceptionRow(n,byDate[n])});
+  var readonly=!ME||ME.role==='viewer';
+  $('addDailyExceptionBtn').style.display=readonly?'none':'';
+  $('saveDailyExceptionsBtn').style.display=readonly?'none':'';
+  [].slice.call(container.querySelectorAll('select,.btn')).forEach(function(x){x.disabled=readonly});
+  var st=$('dailyExceptionsStatus');
+  if(st)st.textContent=readonly?'Wyjątki na dziś (tylko podgląd).':'Dodaj pracownika i wybierz jego indywidualny system pracy na dziś.'
+}
+async function saveDailyExceptions(){
+  if(!ME||ME.role==='viewer')return;
+  var map={},ok=true;
+  document.querySelectorAll('#dailyExceptionsRows .daily-exception-row').forEach(function(row){
+    var name=row.querySelector('.daily-exception-emp').value,system=row.querySelector('.daily-exception-system').value;
+    if(!name||!system||Object.prototype.hasOwnProperty.call(map,name)){ok=false;return}
+    map[name]=system
+  });
+  if(!ok){alert('Wybierz pracownika i system w każdym wierszu. Nie powtarzaj tej samej osoby.');return}
+  var save=$('saveDailyExceptionsBtn'),st=$('dailyExceptionsStatus');
+  save.disabled=true;if(st)st.textContent='Zapisywanie wyjątków…';
+  try{
+    await api('/api/employee-daily-systems',{method:'POST',body:JSON.stringify({date:localDate(new Date()),employees:map})});
+    D=await api('/api/data');renderTodaySystemPicker();renderDailyExceptions();
+    if(st)st.textContent='Zapisano. Nowe wpisy automatycznie uwzględnią wyjątki na dziś.'
+  }catch(e){
+    if(st)st.textContent='Błąd zapisu: '+e.message;
+  }finally{save.disabled=false}
 }
 
 function renderDashboardTest(){
@@ -2207,7 +2295,7 @@ function renderDashboardTest(){
 }
 
 function renderAll(){
-  renderDashboardTest();renderTodaySystemPicker();renderSettings();renderUsers();renderRatings();
+  renderDashboardTest();renderTodaySystemPicker();renderDailyExceptions();renderSettings();renderUsers();renderRatings();
   var old=$('statType').value,oldStatEmp=$('statEmployee')?$('statEmployee').value:'';
   $('statType').innerHTML='<option value="">Wszystkie rodzaje</option>'+visibleDeviceTypes().map(function(t){return'<option'+(t===old?' selected':'')+'>'+esc(t)+'</option>'}).join('');
   if($('statEmployee'))$('statEmployee').innerHTML='<option value="">Wszyscy pracownicy</option>'+(D.settings.employees||[]).map(function(n){return'<option value="'+esc(n)+'"'+(n===oldStatEmp?' selected':'')+'>'+esc(n)+'</option>'}).join('');
@@ -2504,7 +2592,7 @@ function renderEmpDayBox(block,existing){
     if(autoFree)sy='Wolne / brak pracy';
     else if(saved!==undefined)sy=saved.system;
     else if(sat)sy='Wolne / brak pracy';
-    else sy=defaultSystemForDate(ds);
+    else sy=defaultSystemForDate(ds,block.querySelector('.emp').value);
     var row=document.createElement('div');
     row.className='dayrow empdayrow'+(sat?' saturdayrow':'');
     row.dataset.date=ds;
@@ -2517,7 +2605,7 @@ function renderEmpDayBox(block,existing){
 }
 function renderAllEmpDayBoxes(existing){existing=existing||[];document.querySelectorAll('.empblock').forEach(function(block,i){var emp=block.querySelector('.emp').value,r=existing.find(function(x,j){return(x.employee&&x.employee===emp)||(!x.employee&&j===i)})||existing[i]||{days:[]};renderEmpDayBox(block,r.days||[])})}
 function refreshEmpDays(){var cur=currentEmployeeSystems();renderAllEmpDayBoxes(cur)}
-function employeeChanged(sel){var block=sel&&sel.closest?sel.closest('.empblock'):null;if(block){setBlockBreakGroup(block,assignedBreakGroup(sel.value));block.querySelectorAll('.empdayrow').forEach(function(r){r.dataset.breaks=''})}var cur=currentEmployeeSystems();renderAllEmpDayBoxes(cur);if(block)updateScheduledBreakInfo(block)}
+function employeeChanged(sel){var block=sel&&sel.closest?sel.closest('.empblock'):null;var cur=currentEmployeeSystems();if(block){setBlockBreakGroup(block,assignedBreakGroup(sel.value));var i=[].slice.call(document.querySelectorAll('.empblock')).indexOf(block);if(i>=0&&cur[i])cur[i].days=[]}renderAllEmpDayBoxes(cur);if(block)updateScheduledBreakInfo(block)}
 function openEntry(id){
   var e=id?D.entries.find(function(x){return+x.id===+id}):{employees:[],corrections:[],employee_systems:[]};
   $('eid').value=id||'';$('no').value=e.number||'';$('sd').value=e.start_date||new Date().toISOString().slice(0,10);$('ed').value=e.end_date||'';
