@@ -1231,6 +1231,15 @@ th{background:#f6f8f9}
   color:#fff !important;
 }
 
+
+/* Wyjątki systemu pracy jedynie na wybrany dzień */
+.daily-exceptions{margin:0 0 16px}
+.daily-exceptions-panel{margin-top:8px;padding:14px;border:1px solid var(--line);border-radius:14px;background:var(--card)}
+.daily-exceptions-panel[hidden]{display:none}
+.daily-exception-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:10px}
+.daily-exception-row select{flex:1 1 180px;min-width:0;padding:10px;border:1px solid var(--line);border-radius:9px;background:#fff}
+.daily-exceptions-actions{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 6px}
+@media(max-width:500px){.daily-exception-row select{flex:1 1 100%}.daily-exception-row .btn{margin-left:auto}}
 </style></head><body>
 <div id="login" class="login"><div class="box"><button type="button" class="btn secondary" onclick="location.href='./index.html'" style="width:100%;margin:0 0 14px">← Wróć do wyboru działu</button><div class="brand"><span class="brandmark" aria-hidden="true"><i></i><i></i><i></i></span><span class="brandtext"><span class="clima">Clima</span><span class="gold">Gold</span></span></div><h2>Elektrycy H2</h2><div class="hint">Wspólna baza online</div><div class="field"><label>Login</label><input id="lu" value="brygadzista" autocomplete="username"></div><div class="field"><label>Hasło</label><input id="lp" type="password" autocomplete="current-password"></div><button class="btn" onclick="doLogin()">Zaloguj</button><div id="le" class="error"></div></div></div>
 <div id="app" class="app"><aside class="side"><div class="brand"><span class="brandmark" aria-hidden="true"><i></i><i></i><i></i></span><span class="brandtext"><span class="clima">Clima</span><span class="gold">Gold</span></span></div><span class="hall">ELEKTRYCY H2</span><div class="nav">
@@ -1263,6 +1272,19 @@ th{background:#f6f8f9}
         <option value="">Wybierz system na dziś</option>
       </select>
       <div class="today-system-status" id="todaySystemStatus"></div>
+    </div>
+  </div>
+
+  <div class="daily-exceptions">
+    <button type="button" class="btn secondary" id="dailyExceptionsToggle" onclick="toggleDailyExceptions()">Wyjątki pracowników <span id="dailyExceptionsCount"></span></button>
+    <div id="dailyExceptionsPanel" class="daily-exceptions-panel" hidden>
+      <div class="muted">Na dzisiaj: każdemu pracownikowi możesz przypisać inny system. Pozostali mają zwykły system działu.</div>
+      <div id="dailyExceptionsRows"></div>
+      <div class="daily-exceptions-actions">
+        <button type="button" class="btn secondary" id="addDailyExceptionBtn" onclick="addDailyExceptionRow()">+ Dodaj pracownika</button>
+        <button type="button" class="btn" id="saveDailyExceptionsBtn" onclick="saveDailyExceptions()">Zapisz wyjątki</button>
+      </div>
+      <div class="muted" id="dailyExceptionsStatus"></div>
     </div>
   </div>
 
@@ -1313,7 +1335,7 @@ th{background:#f6f8f9}
   </div>
 </section>
 
-<section id="entries" class="view"><div class="toolbar"><button id="addbtn" class="btn" onclick="openEntry()">+ Dodaj wpis</button><input id="entryMonth" type="month" onchange="entryMonthChanged()" style="padding:10px;border:1px solid var(--line);border-radius:9px"><button id="entryAllBtn" class="btn secondary entryfilter active" onclick="setEntryFilter('all')">Wszystkie</button><button id="entryOngoingBtn" class="btn secondary entryfilter" onclick="setEntryFilter('ongoing')">W TOKU</button><button id="entryStoppedBtn" class="btn secondary entryfilter" onclick="setEntryFilter('stopped')">ZATRZYMANE</button><button id="entryDoneBtn" class="btn secondary entryfilter" onclick="setEntryFilter('done')">ZAKOŃCZONE</button><select id="entryTypeFilter" onchange="renderEntries()" class="entryselect"><option value="">Wszystkie rodzaje central</option></select><select id="entryEmployeeFilter" onchange="renderEntries()" class="entryselect"><option value="">Wszyscy pracownicy</option></select><input id="search" placeholder="Szukaj nr, pracownika lub typu" oninput="renderEntries()" style="padding:10px;border:1px solid var(--line);border-radius:9px;min-width:240px"></div><div class="tablewrap"><table><thead><tr><th class="actioncol">Akcje</th><th>Data</th><th>Nr</th><th>Typ</th><th>Pracownicy</th><th>System</th><th>Czas</th><th>Uwagi</th></tr></thead><tbody id="et"></tbody></table></div></section>
+<section id="entries" class="view"><div class="toolbar"><button id="addbtn" class="btn" onclick="openEntry()">+ Dodaj wpis</button><button id="undoEntryDeleteBtn" class="btn secondary" style="display:none" onclick="undoDeletedEntry()">↶ Cofnij usunięcie</button><input id="entryMonth" type="month" onchange="entryMonthChanged()" style="padding:10px;border:1px solid var(--line);border-radius:9px"><button id="entryAllBtn" class="btn secondary entryfilter active" onclick="setEntryFilter('all')">Wszystkie</button><button id="entryOngoingBtn" class="btn secondary entryfilter" onclick="setEntryFilter('ongoing')">W TOKU</button><button id="entryStoppedBtn" class="btn secondary entryfilter" onclick="setEntryFilter('stopped')">ZATRZYMANE</button><button id="entryDoneBtn" class="btn secondary entryfilter" onclick="setEntryFilter('done')">ZAKOŃCZONE</button><select id="entryTypeFilter" onchange="renderEntries()" class="entryselect"><option value="">Wszystkie rodzaje central</option></select><select id="entryEmployeeFilter" onchange="renderEntries()" class="entryselect"><option value="">Wszyscy pracownicy</option></select><input id="search" placeholder="Szukaj nr, pracownika lub typu" oninput="renderEntries()" style="padding:10px;border:1px solid var(--line);border-radius:9px;min-width:240px"></div><div class="tablewrap"><table><thead><tr><th class="actioncol">Akcje</th><th>Data</th><th>Nr</th><th>Typ</th><th>Pracownicy</th><th>System</th><th>Czas</th><th>Uwagi</th></tr></thead><tbody id="et"></tbody></table></div></section>
 <section id="stats" class="view">
   <div class="toolbar">
     <input id="month" type="month" onchange="renderStats()" style="padding:9px">
@@ -1647,7 +1669,7 @@ function employeeBlockHtml(i,e,cs){
   var lab=MAX_EMP===1?'Pracownik':'Pracownik '+(i+1);
   var remove='<button type="button" class="btn danger empremove" onclick="removeEmployeeBlock(this)">Usuń tego pracownika</button>';
   var groupUi=hasBreakGroups()?'<div class="field"><label>Grupa przerw</label><div class="groupbadge">Grupa A</div></div>':'';
-  return'<div class="empblock" data-slot="'+i+'"><div class="empgrid"><div class="field"><label>'+lab+'</label><select class="emp" onchange="employeeChanged(this)">'+workerSelectOptions((e.employees||[])[i]||'')+'</select></div>'+groupUi+'<input class="breakgroup" type="hidden" value="A"><input class="corr" type="hidden" value="'+(cs[i]||0)+'"></div><div class="participation"><div class="partbuttons"><button type="button" class="btn secondary" onclick="toggleParticipation(this,\'from\')">Dołącza do pracy</button><button type="button" class="btn secondary" onclick="toggleParticipation(this,\'to\')">Kończy pracę</button></div><div class="partfields frompart"><b class="partlabel">Dołącza</b><input class="pfromd" type="date" onchange="participationChanged(this)"><input class="pfromt" type="time" onchange="updatePartStatus(this.closest(\'.empblock\'))"><button type="button" class="btn secondary" onclick="clearParticipation(this,\'from\')">Usuń</button></div><div class="partfields topart"><b class="partlabel">Kończy</b><input class="ptod" type="date" onchange="participationChanged(this)"><input class="ptot" type="time" onchange="updatePartStatus(this.closest(\'.empblock\'))"><button type="button" class="btn secondary" onclick="clearParticipation(this,\'to\')">Usuń</button></div><div class="muted partstatus">Bez zmian = pracuje od początku do końca.</div></div><div class="breakgroupnote">Planowe przerwy</div><div class="pausebox"><div class="empname">Dodatkowe przerwy / wstrzymania</div><div class="pausebuttons"><button type="button" class="btn secondary" onclick="pauseWork(this)">Wstrzymał pracę</button><button type="button" class="btn secondary" onclick="resumeWork(this)">Rozpoczął pracę</button><button type="button" class="btn secondary" onclick="finishWorkAtPause(this)">Kończy pracę od wstrzymania</button></div><div class="pauselist"></div><div class="muted pausestatus">Brak przerw.</div></div><div class="empname">System pracy tego pracownika</div><div class="muted" style="margin-bottom:6px">Pokazywane są tylko dni, w których ten pracownik uczestniczy w pracy przy centrali.</div><div class="empsystems"></div>'+remove+'</div>'
+  return'<div class="empblock" data-slot="'+i+'"><div class="empgrid"><div class="field"><label>'+lab+'</label><select class="emp" onchange="employeeChanged(this)">'+workerSelectOptions((e.employees||[])[i]||'')+'</select></div>'+groupUi+'<input class="breakgroup" type="hidden" value="A"><input class="corr" type="hidden" value="'+(cs[i]||0)+'"></div><div class="participation"><div class="partbuttons"><button type="button" class="btn secondary" onclick="toggleParticipation(this,\'from\')">Dołącza do pracy</button><button type="button" class="btn secondary" onclick="toggleParticipation(this,\'to\')">Kończy pracę</button></div><div class="partfields frompart"><b class="partlabel">Dołącza</b><input class="pfromd" type="date" onchange="participationChanged(this)"><input class="pfromt" type="time" onchange="updatePartStatus(this.closest(\'.empblock\'))"><button type="button" class="btn secondary" onclick="clearParticipation(this,\'from\')">Usuń</button></div><div class="partfields topart"><b class="partlabel">Kończy</b><input class="ptod" type="date" onchange="participationChanged(this)"><input class="ptot" type="time" onchange="updatePartStatus(this.closest(\'.empblock\'))"><button type="button" class="btn secondary" onclick="clearParticipation(this,\'to\')">Usuń</button></div><div class="muted partstatus">Bez zmian = pracuje od początku do końca.</div></div><div class="breakgroupnote">Planowe przerwy</div><div class="pausebox"><div class="empname">Dodatkowe przerwy / wstrzymania</div><div class="pausebuttons"><button type="button" class="btn secondary" onclick="pauseWork(this)">Wstrzymał pracę</button><button type="button" class="btn secondary" onclick="resumeWork(this)">Rozpoczął pracę</button><button type="button" class="btn secondary" onclick="finishWorkAtPause(this)">Kończy pracę od wstrzymania</button><button type="button" class="btn secondary" onclick="rejoinEmployee(this)">↩ Ponownie dołącza</button></div><div class="pauselist"></div><div class="muted pausestatus">Brak przerw.</div></div><div class="empname">System pracy tego pracownika</div><div class="muted" style="margin-bottom:6px">Pokazywane są tylko dni, w których ten pracownik uczestniczy w pracy przy centrali.</div><div class="empsystems"></div>'+remove+'</div>'
 }
 function renumberEmployeeBlocks(){
   [].slice.call(document.querySelectorAll('.empblock')).forEach(function(block,i){
@@ -2096,8 +2118,8 @@ function configuredSystemForDate(ds){
   var m=ensureDailySystems(),s=m[ds]||'';
   return (D.settings.systems||[]).indexOf(s)>=0?s:''
 }
-function defaultSystemForDate(ds){
-  return configuredSystemForDate(ds)||(D.settings.systems||[])[0]||''
+function defaultSystemForDate(ds,emp){
+  return (emp?employeeSystemException(ds,emp):'')||configuredSystemForDate(ds)||(D.settings.systems||[])[0]||''
 }
 function renderTodaySystemPicker(){
   var sel=$('todaySystemSelect'),card=$('todaySystemCard'),dateEl=$('todaySystemDate'),status=$('todaySystemStatus');
@@ -2127,6 +2149,72 @@ async function saveTodaySystem(system){
     if(status)status.textContent='Nie udało się zapisać systemu.';
     if(sel)sel.disabled=false
   }
+}
+
+
+function employeeDailyOverrides(){
+  var map=D&&D.settings&&D.settings.employee_daily_systems;
+  return map&&typeof map==='object'&&!Array.isArray(map)?map:{}
+}
+function employeeSystemException(ds,emp){
+  var overrides=employeeDailyOverrides(),byDate=overrides[ds]||{},chosen=byDate[emp]||'';
+  return (D.settings.systems||[]).indexOf(chosen)>=0?chosen:''
+}
+function toggleDailyExceptions(){
+  var panel=$('dailyExceptionsPanel');if(!panel)return;
+  panel.hidden=!panel.hidden;
+  if(!panel.hidden)renderDailyExceptions()
+}
+function dailyExceptionRow(name,system){
+  var container=$('dailyExceptionsRows');if(!container)return;
+  var available=allWorkers(),systems=D.settings.systems||[];
+  var row=document.createElement('div');row.className='daily-exception-row';
+  var names='<option value="">Wybierz pracownika</option>'+available.map(function(n){return'<option value="'+esc(n)+'"'+(n===name?' selected':'')+'>'+esc(n)+'</option>'}).join('');
+  var sys='<option value="">Wybierz system</option>'+systems.map(function(v){return'<option value="'+esc(v)+'"'+(v===system?' selected':'')+'>'+esc(v)+'</option>'}).join('');
+  row.innerHTML='<select class="daily-exception-emp" aria-label="Pracownik">'+names+'</select><select class="daily-exception-system" aria-label="System pracy">'+sys+'</select><button type="button" class="btn danger" onclick="removeDailyExceptionRow(this)">Usuń</button>';
+  container.appendChild(row)
+}
+function addDailyExceptionRow(){
+  if(!ME||ME.role==='viewer')return;
+  dailyExceptionRow('','')
+}
+function removeDailyExceptionRow(btn){
+  if(!ME||ME.role==='viewer')return;
+  btn.closest('.daily-exception-row').remove()
+}
+function renderDailyExceptions(){
+  var container=$('dailyExceptionsRows'),counter=$('dailyExceptionsCount');
+  if(!container||!D)return;
+  var byDate=employeeDailyOverrides()[localDate(new Date())]||{},workers=allWorkers(),valid=D.settings.systems||[];
+  var rows=Object.keys(byDate).filter(function(n){return workers.indexOf(n)>=0&&valid.indexOf(byDate[n])>=0});
+  if(counter)counter.textContent=rows.length?'('+rows.length+')':'';
+  container.innerHTML='';
+  rows.forEach(function(n){dailyExceptionRow(n,byDate[n])});
+  var readonly=!ME||ME.role==='viewer';
+  $('addDailyExceptionBtn').style.display=readonly?'none':'';
+  $('saveDailyExceptionsBtn').style.display=readonly?'none':'';
+  [].slice.call(container.querySelectorAll('select,.btn')).forEach(function(x){x.disabled=readonly});
+  var st=$('dailyExceptionsStatus');
+  if(st)st.textContent=readonly?'Wyjątki na dziś (tylko podgląd).':'Dodaj pracownika i wybierz jego indywidualny system pracy na dziś.'
+}
+async function saveDailyExceptions(){
+  if(!ME||ME.role==='viewer')return;
+  var map={},ok=true;
+  document.querySelectorAll('#dailyExceptionsRows .daily-exception-row').forEach(function(row){
+    var name=row.querySelector('.daily-exception-emp').value,system=row.querySelector('.daily-exception-system').value;
+    if(!name||!system||Object.prototype.hasOwnProperty.call(map,name)){ok=false;return}
+    map[name]=system
+  });
+  if(!ok){alert('Wybierz pracownika i system w każdym wierszu. Nie powtarzaj tej samej osoby.');return}
+  var save=$('saveDailyExceptionsBtn'),st=$('dailyExceptionsStatus');
+  save.disabled=true;if(st)st.textContent='Zapisywanie wyjątków…';
+  try{
+    await api('/api/employee-daily-systems',{method:'POST',body:JSON.stringify({date:localDate(new Date()),employees:map})});
+    D=await api('/api/data');renderTodaySystemPicker();renderDailyExceptions();
+    if(st)st.textContent='Zapisano. Nowe wpisy automatycznie uwzględnią wyjątki na dziś.'
+  }catch(e){
+    if(st)st.textContent='Błąd zapisu: '+e.message;
+  }finally{save.disabled=false}
 }
 
 function renderDashboardTest(){
@@ -2176,7 +2264,7 @@ function renderDashboardTest(){
 }
 
 function renderAll(){
-  renderDashboardTest();renderTodaySystemPicker();renderSettings();renderUsers();renderRatings();
+  renderDashboardTest();renderTodaySystemPicker();renderDailyExceptions();renderSettings();renderUsers();renderRatings();
   var old=$('statType').value,oldStatEmp=$('statEmployee')?$('statEmployee').value:'';
   $('statType').innerHTML='<option value="">Wszystkie rodzaje</option>'+visibleDeviceTypes().map(function(t){return'<option'+(t===old?' selected':'')+'>'+esc(t)+'</option>'}).join('');
   if($('statEmployee'))$('statEmployee').innerHTML='<option value="">Wszyscy pracownicy</option>'+(D.settings.employees||[]).map(function(n){return'<option value="'+esc(n)+'"'+(n===oldStatEmp?' selected':'')+'>'+esc(n)+'</option>'}).join('');
@@ -2264,6 +2352,8 @@ function entryMonthChanged(){
 }
 function clearEntryMonth(){setEntryFilter('all')}
 function renderEntries(){
+  var undoBtn=$('undoEntryDeleteBtn'),deleted=(D&&Array.isArray(D.deleted_entries)?D.deleted_entries:[]);
+  if(undoBtn){undoBtn.style.display=ME&&ME.role==='admin'&&deleted.length?'inline-block':'none';if(deleted.length)undoBtn.title='Ostatnio usunięta centrala: '+(deleted[0].entry&&deleted[0].entry.number||'bez numeru')}
   var q=($('search').value||'').toLowerCase(),m=$('entryMonth')?$('entryMonth').value:'';
   var typeFilter=$('entryTypeFilter')?$('entryTypeFilter').value:'',employeeFilter=$('entryEmployeeFilter')?$('entryEmployeeFilter').value:'';
   var first=m?m+'-01':'',last=m?m+'-31':'';
@@ -2413,7 +2503,7 @@ function resumeAllWork(){
 }
 
 function collectPauses(block){
-  return[].slice.call(block.querySelectorAll('.pauserow')).map(function(r){return{from_date:r.querySelector('.pausefromd').value,from_time:r.querySelector('.pausefromt').value,to_date:r.querySelector('.pausetod').value,to_time:r.querySelector('.pausetot').value}}).filter(function(p){return p.from_date||p.from_time||p.to_date||p.to_time})
+  return[].slice.call(block.querySelectorAll('.pauserow')).map(function(r){return{kind:r.dataset.kind||'',from_date:r.querySelector('.pausefromd').value,from_time:r.querySelector('.pausefromt').value,to_date:r.querySelector('.pausetod').value,to_time:r.querySelector('.pausetot').value}}).filter(function(p){return p.from_date||p.from_time||p.to_date||p.to_time})
 }
 function pauseNowDate(){var today=localDate(new Date()),sd=$('sd').value,ed=$('ed').value;if(sd&&today<sd)return sd;if(ed&&today>ed)return ed;return today}
 function pauseNowTime(){var n=new Date();return String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0')}
@@ -2425,7 +2515,7 @@ function updatePauseStatus(block){
 }
 function renderPauseControls(block,pauses){
   var box=block.querySelector('.pauselist');pauses=Array.isArray(pauses)?pauses:[];
-  box.innerHTML=pauses.map(function(p){return'<div class="pauserow"><b>Od</b><input class="pausefromd" type="date" value="'+esc(p.from_date||'')+'" onchange="updatePauseStatus(this.closest(\'.empblock\'))"><input class="pausefromt" type="time" value="'+esc(p.from_time||'')+'" onchange="updatePauseStatus(this.closest(\'.empblock\'))"><b class="pause-to-label">Do</b><input class="pausetod" type="date" value="'+esc(p.to_date||'')+'" onchange="updatePauseStatus(this.closest(\'.empblock\'))"><input class="pausetot" type="time" value="'+esc(p.to_time||'')+'" onchange="updatePauseStatus(this.closest(\'.empblock\'))"><button type="button" class="btn danger pause-delete" onclick="removePause(this)">Usuń</button></div>'}).join('');updatePauseStatus(block)
+  box.innerHTML=pauses.map(function(p){return'<div class="pauserow" data-kind="'+(p.kind==='return_gap'?'return_gap':'')+'"><b>'+(p.kind==='return_gap'?'Powrót — od':'Od')+'</b><input class="pausefromd" type="date" value="'+esc(p.from_date||'')+'" onchange="updatePauseStatus(this.closest(\'.empblock\'))"><input class="pausefromt" type="time" value="'+esc(p.from_time||'')+'" onchange="updatePauseStatus(this.closest(\'.empblock\'))"><b class="pause-to-label">Do</b><input class="pausetod" type="date" value="'+esc(p.to_date||'')+'" onchange="updatePauseStatus(this.closest(\'.empblock\'))"><input class="pausetot" type="time" value="'+esc(p.to_time||'')+'" onchange="updatePauseStatus(this.closest(\'.empblock\'))"><button type="button" class="btn danger pause-delete" onclick="removePause(this)">Usuń</button></div>'}).join('');updatePauseStatus(block)
 }
 function pauseWork(btn){var block=btn.closest('.empblock'),p=collectPauses(block);if(blockParticipationEnded(block)){alert('Pracownik już zakończył udział w tej pracy.');return}if(p.some(function(x){return x.from_date&&x.from_time&&!(x.to_date&&x.to_time)})){alert('Praca jest już wstrzymana.');return}p.push({from_date:pauseNowDate(),from_time:pauseNowTime(),to_date:'',to_time:''});renderPauseControls(block,p)}
 function resumeWork(btn){var block=btn.closest('.empblock'),p=collectPauses(block),i;if(blockParticipationEnded(block)){alert('Pracownik już zakończył udział w tej pracy.');return}for(i=p.length-1;i>=0;i--)if(p[i].from_date&&p[i].from_time&&!(p[i].to_date&&p[i].to_time))break;if(i<0){alert('Najpierw kliknij „Wstrzymał pracę”.');return}p[i].to_date=pauseNowDate();p[i].to_time=pauseNowTime();renderPauseControls(block,p)}
@@ -2456,6 +2546,26 @@ function finishWorkAtPause(btn){
   renderPauseControls(block,pauses);
   participationChanged(block)
 }
+
+function rejoinEmployee(btn){
+  var block=btn.closest('.empblock'),endDate=block.querySelector('.ptod').value,endTime=block.querySelector('.ptot').value;
+  if(!endDate||!endTime){alert('Najpierw zakończ udział pracownika przy centrali.');return}
+  if($('ed').value&&$('ett').value){alert('Centrala jest już zakończona. Aby dodać powrót, najpierw otwórz jej ewidencję.');return}
+  var now=quickNowParts(),start=endDate+'T'+endTime,back=now.date+'T'+now.time;
+  if(back<=start){alert('Godzina ponownego dołączenia musi być późniejsza niż poprzednie zakończenie.');return}
+  var breaks=collectPauses(block);
+  if(breaks.some(function(x){return x.from_date&&x.from_time&&!(x.to_date&&x.to_time)})){
+    alert('Najpierw zakończ otwarte wstrzymanie pracownika.');return
+  }
+  if(!confirm('Przywrócić pracownika do tej centrali od '+now.date+' '+now.time+'?\nWcześniej przepracowane godziny zostaną zachowane.'))return;
+  breaks.push({kind:'return_gap',from_date:endDate,from_time:endTime,to_date:now.date,to_time:now.time});
+  block.querySelector('.ptod').value='';
+  block.querySelector('.ptot').value='';
+  block.querySelector('.topart').classList.remove('open');
+  renderPauseControls(block,breaks);
+  participationChanged(block);
+}
+
 function removePause(btn){var block=btn.closest('.empblock');btn.closest('.pauserow').remove();updatePauseStatus(block)}
 function restorePauseControls(existing){existing=existing||[];document.querySelectorAll('.empblock').forEach(function(block,i){var emp=block.querySelector('.emp').value,r=existing.find(function(x,j){return(x.employee&&x.employee===emp)||(!x.employee&&j===i)})||existing[i]||{};renderPauseControls(block,r.pauses||[])})}
 
@@ -2466,6 +2576,7 @@ function renderEmpDayBox(block,existing){
   var fd=block.querySelector('.pfromd')&&block.querySelector('.pfromd').value,td=block.querySelector('.ptod')&&block.querySelector('.ptod').value;
   if(fd){var fa=new Date(fd+'T00:00');if(fa>a)a=fa;if(!$('ed').value&&fa>b)b=fa}
   if(td){var tb=new Date(td+'T00:00');if(!$('ed').value&&tb>b)b=tb;if(tb<b)b=tb}
+  if(!$('ed').value){collectPauses(block).forEach(function(p){if(p.kind==='return_gap'&&p.to_date){var rb=new Date(p.to_date+'T00:00');if(rb>b)b=rb}})}
   if(b<a){box.innerHTML='<span class="muted">Brak dni pracy w wybranym zakresie udziału.</span>';return}
   var prev={};(existing||[]).forEach(function(x){prev[x.date]=x});box.innerHTML='';
   for(var d=new Date(a);d<=b;d.setDate(d.getDate()+1)){
@@ -2473,7 +2584,7 @@ function renderEmpDayBox(block,existing){
     if(autoFree)sy='Wolne / brak pracy';
     else if(saved!==undefined)sy=saved.system;
     else if(sat)sy='Wolne / brak pracy';
-    else sy=defaultSystemForDate(ds);
+    else sy=defaultSystemForDate(ds,block.querySelector('.emp').value);
     var row=document.createElement('div');
     row.className='dayrow empdayrow'+(sat?' saturdayrow':'');
     row.dataset.date=ds;
@@ -2486,7 +2597,7 @@ function renderEmpDayBox(block,existing){
 }
 function renderAllEmpDayBoxes(existing){existing=existing||[];document.querySelectorAll('.empblock').forEach(function(block,i){var emp=block.querySelector('.emp').value,r=existing.find(function(x,j){return(x.employee&&x.employee===emp)||(!x.employee&&j===i)})||existing[i]||{days:[]};renderEmpDayBox(block,r.days||[])})}
 function refreshEmpDays(){var cur=currentEmployeeSystems();renderAllEmpDayBoxes(cur)}
-function employeeChanged(sel){var block=sel&&sel.closest?sel.closest('.empblock'):null;if(block){setBlockBreakGroup(block,assignedBreakGroup(sel.value));block.querySelectorAll('.empdayrow').forEach(function(r){r.dataset.breaks=''})}var cur=currentEmployeeSystems();renderAllEmpDayBoxes(cur);if(block)updateScheduledBreakInfo(block)}
+function employeeChanged(sel){var block=sel&&sel.closest?sel.closest('.empblock'):null;var cur=currentEmployeeSystems();if(block){setBlockBreakGroup(block,assignedBreakGroup(sel.value));var i=[].slice.call(document.querySelectorAll('.empblock')).indexOf(block);if(i>=0&&cur[i])cur[i].days=[]}renderAllEmpDayBoxes(cur);if(block)updateScheduledBreakInfo(block)}
 function openEntry(id){
   var e=id?D.entries.find(function(x){return+x.id===+id}):{employees:[],corrections:[],employee_systems:[]};
   $('eid').value=id||'';$('no').value=e.number||'';$('sd').value=e.start_date||new Date().toISOString().slice(0,10);$('ed').value=e.end_date||'';
@@ -2505,7 +2616,21 @@ function quickStartWork(){var n=quickNowParts();$('sd').value=n.date;$('stt').va
 function quickEndWork(){var n=quickNowParts();if(!$('sd').value)$('sd').value=n.date;if(!$('stt').value)$('stt').value=n.time;$('ed').value=n.date;$('ett').value=n.time;refreshEmpDays()}
 function closeEntry(){$('modal').classList.remove('open')}
 async function saveEntry(){var employees=[],corrections=[],employee_systems=[];document.querySelectorAll('.empblock').forEach(function(block){var emp=block.querySelector('.emp').value;if(!emp)return;var group=(block.querySelector('.breakgroup')||{}).value||'A';employees.push(emp);corrections.push(+block.querySelector('.corr').value||0);employee_systems.push({employee:emp,break_group:group,days:[].slice.call(block.querySelectorAll('.empdayrow')).map(function(r){return{date:r.dataset.date,system:r.querySelector('select').value,breaks:dayBreakSnapshot(r,group)}}),work_from_date:block.querySelector('.pfromd').value,work_from_time:block.querySelector('.pfromt').value,work_to_date:block.querySelector('.ptod').value,work_to_time:block.querySelector('.ptot').value,pauses:collectPauses(block)})});var section=(isMontazHall()&&isSplitDeviceType($('dt').value))?$('section').value:'';if(isMontazHall()&&isSplitDeviceType($('dt').value)&&!section){alert('Wybierz sekcję centrali dzielonej.');return}var x={id:$('eid').value?+$('eid').value:undefined,start_date:$('sd').value,end_date:$('ed').value,device_type:$('dt').value,number:$('no').value,start_time:$('stt').value,end_time:$('ett').value,day_systems:employee_systems[0]?employee_systems[0].days:[],employee_systems:employee_systems,employees:employees,corrections:corrections,notes:notesWithSection($('notes').value,section),mark_color:$('markcolor').value,additional_employees:employees.filter(function(n){return extraWorkers().indexOf(n)>=0||(D.entries||[]).some(function(old){return +old.id===+($('eid').value||0)&&entryExtraNames(old).indexOf(n)>=0})})};if(!x.start_date||!x.start_time){alert('Uzupełnij datę i godzinę rozpoczęcia');return}if((x.end_date&&!x.end_time)||(!x.end_date&&x.end_time)){alert('Uzupełnij jednocześnie datę i godzinę zakończenia');return}if(x.end_date&&x.end_date<x.start_date){alert('Błędna data zakończenia');return}if(HALL==='AUTO'&&x.employees.filter(function(n){return extraWorkers().indexOf(n)<0}).length>1){alert('Automatycy: tylko jeden stały pracownik; można dodać pomoc serwisu.');return}if(!saturdayNeedsConfirmation(x))return;await api('/api/entry',{method:'POST',body:JSON.stringify(x)});D=await api('/api/data');closeEntry();renderAll()}
-async function delEntry(id){if(!confirm('Usunąć wpis?'))return;await api('/api/entry/'+id,{method:'DELETE'});D=await api('/api/data');renderAll()}
+async function delEntry(id){
+  var old=(D.entries||[]).find(function(e){return +e.id===+id});
+  if(!confirm('Usunąć wpis centrali '+(old&&old.number||'')+'? Będzie można go przywrócić przyciskiem „Cofnij usunięcie”.'))return;
+  try{await api('/api/entry/'+id,{method:'DELETE'});D=await api('/api/data');renderAll()}
+  catch(e){alert('Nie udało się usunąć wpisu: '+e.message)}
+}
+async function undoDeletedEntry(){
+  if(!ME||ME.role!=='admin')return;
+  var last=D&&Array.isArray(D.deleted_entries)&&D.deleted_entries[0];if(!last)return;
+  if(!confirm('Przywrócić usuniętą centralę '+(last.entry&&last.entry.number||'bez numeru')+'?'))return;
+  try{
+    await api('/api/entry/undo',{method:'POST',body:JSON.stringify({token:last.token})});
+    D=await api('/api/data');renderAll()
+  }catch(e){alert('Nie udało się przywrócić wpisu: '+e.message)}
+}
 function rankFullRows(rows){
   var ranked=rows.filter(function(x){return x.full>0}).slice().sort(function(a,b){return a.avgFull-b.avgFull||a.name.localeCompare(b.name,'pl')});
   var lastAvg=null,place=0;
