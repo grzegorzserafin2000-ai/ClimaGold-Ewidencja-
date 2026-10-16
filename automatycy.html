@@ -2353,7 +2353,7 @@ function entryMonthChanged(){
 function clearEntryMonth(){setEntryFilter('all')}
 function renderEntries(){
   var undoBtn=$('undoEntryDeleteBtn'),deleted=(D&&Array.isArray(D.deleted_entries)?D.deleted_entries:[]);
-  if(undoBtn){undoBtn.style.display=ME&&ME.role==='admin'&&deleted.length?'inline-block':'none';if(deleted.length)undoBtn.title='Ostatnio usunięta centrala: '+(deleted[0].entry&&deleted[0].entry.number||'bez numeru')}
+  if(undoBtn){undoBtn.style.display=ME&&(ME.role==='admin'||ME.role==='supervisor')&&deleted.length?'inline-block':'none';if(deleted.length)undoBtn.title='Ostatnio usunięta centrala: '+(deleted[0].entry&&deleted[0].entry.number||'bez numeru')}
   var q=($('search').value||'').toLowerCase(),m=$('entryMonth')?$('entryMonth').value:'';
   var typeFilter=$('entryTypeFilter')?$('entryTypeFilter').value:'',employeeFilter=$('entryEmployeeFilter')?$('entryEmployeeFilter').value:'';
   var first=m?m+'-01':'',last=m?m+'-31':'';
@@ -2370,7 +2370,7 @@ function renderEntries(){
     var employeeOk=!employeeFilter||(e.employees||[]).indexOf(employeeFilter)>=0;
     return textOk&&monthOk&&statusOk&&typeOk&&employeeOk
   }).map(function(e){
-    var ac=ME.role==='viewer'?'':'<button class="btn secondary" onclick="openEntry('+e.id+')">Edytuj</button> '+(ME.role==='admin'?'<button class="btn danger" onclick="delEntry('+e.id+')">Usuń</button>':'');
+    var ac=ME.role==='viewer'?'':'<button class="btn secondary" onclick="openEntry('+e.id+')">Edytuj</button> '+(ME.role==='admin'||ME.role==='supervisor'?'<button class="btn danger" onclick="delEntry('+e.id+')">Usuń</button>':'');
     return'<tr class="mark-'+(e.mark_color||'none')+'"><td class="actioncol">'+ac+'</td><td>'+esc(e.start_date)+(e.end_date?' → '+esc(e.end_date):'')+' · '+esc(entryStatusText(e))+'</td><td><b>'+esc(e.number)+'</b></td><td>'+esc(entryDeviceLabel(e))+'</td><td>'+esc((e.employees||[]).join(', '))+'</td><td>'+esc(systemSummary(e))+'</td><td>'+esc(timeSummary(e))+'</td><td>'+esc(notesWithoutSection(e.notes))+'</td></tr>'
   }).join('')
 }
@@ -2623,7 +2623,7 @@ async function delEntry(id){
   catch(e){alert('Nie udało się usunąć wpisu: '+e.message)}
 }
 async function undoDeletedEntry(){
-  if(!ME||ME.role!=='admin')return;
+  if(!ME||(ME.role!=='admin'&&ME.role!=='supervisor'))return;
   var last=D&&Array.isArray(D.deleted_entries)&&D.deleted_entries[0];if(!last)return;
   if(!confirm('Przywrócić usuniętą centralę '+(last.entry&&last.entry.number||'bez numeru')+'?'))return;
   try{
