@@ -100,7 +100,7 @@ async function handleApi(req:Request,hall:string,path:string){
     return json({version:data.version});
   }
   if(path==="/api/data"&&method==="GET"){
-    const row=await loadState(hall), state=structuredClone(row.data||{}); delete state.users; if(u.role!=="admin")delete state.deleted_entries; state.users=u.role==="admin"?await listUsers(hall):[]; state._online={version:row.version,updated_at:(await db.from("climagold_hall_state").select("updated_at,updated_by").eq("hall",hall).single()).data?.updated_at}; return json(state);
+    const row=await loadState(hall), state=structuredClone(row.data||{}); delete state.users; if(u.role!=="admin"&&u.role!=="supervisor")delete state.deleted_entries; state.users=u.role==="admin"?await listUsers(hall):[]; state._online={version:row.version,updated_at:(await db.from("climagold_hall_state").select("updated_at,updated_by").eq("hall",hall).single()).data?.updated_at}; return json(state);
   }
   if(path==="/api/entry"&&method==="POST"){
     requireRole(u,["admin","supervisor"]); const x:any=await body(req);
@@ -109,7 +109,7 @@ async function handleApi(req:Request,hall:string,path:string){
     await mutateState(hall,u.username,(s:any)=>{s.entries=Array.isArray(s.entries)?s.entries:[]; if(clean.id){const i=s.entries.findIndex((e:any)=>Number(e.id)===clean.id); if(i<0)throw Object.assign(new Error("Nie znaleziono wpisu."),{status:404}); s.entries[i]=clean;}else{clean.id=[...(s.entries||[]),...(s.deleted_entries||[]).map((z:any)=>z.entry||{})].reduce((m:number,e:any)=>Math.max(m,Number(e.id)||0),0)+1;s.entries.unshift(clean)}}); return json({ok:true,id:clean.id});
   }
   if(path.startsWith("/api/entry/")&&method==="DELETE"){
-    requireRole(u,["admin"]); const id=Number(path.split("/").pop()),token=crypto.randomUUID();
+    requireRole(u,["admin","supervisor"]); const id=Number(path.split("/").pop()),token=crypto.randomUUID();
     await mutateState(hall,u.username,(s:any)=>{
       s.entries=Array.isArray(s.entries)?s.entries:[];
       const i=s.entries.findIndex((e:any)=>Number(e.id)===id);
@@ -120,7 +120,7 @@ async function handleApi(req:Request,hall:string,path:string){
     return json({ok:true});
   }
   if(path==="/api/entry/undo"&&method==="POST"){
-    requireRole(u,["admin"]); const x:any=await body(req),token=String(x.token||"");
+    requireRole(u,["admin","supervisor"]); const x:any=await body(req),token=String(x.token||"");
     if(!token)return json({error:"Nie wskazano usuniętego wpisu."},400);
     let restoredId=0;
     await mutateState(hall,u.username,(s:any)=>{
