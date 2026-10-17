@@ -155,7 +155,7 @@ async function handleApi(req:Request,hall:string,path:string){
     return json({ok:true});
   }
 
-  if(path==="/api/employee-daily-systems"&&method==="POST"){
+  if((path==="/api/employee-daily-systems"||path==="/api/work-plan")&&method==="POST"){
     requireRole(u,["admin","supervisor"]);
     const x:any=await body(req),date=String(x.date||""),wanted=x.employees;
     if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||!wanted||typeof wanted!=="object"||Array.isArray(wanted)||Object.keys(wanted).length>100)
@@ -179,6 +179,12 @@ async function handleApi(req:Request,hall:string,path:string){
       const daily=current&&typeof current==="object"&&!Array.isArray(current)?{...current}:{};
       if(Object.keys(next).length)daily[date]=next;else delete daily[date];
       s.settings.employee_daily_systems=daily;
+      if(path==="/api/work-plan"){
+        const system=String(x.system||"");
+        if(!systems.has(system))throw Object.assign(new Error("Wybierz system pracy dla działu."),{status:400});
+        s.settings.daily_systems={...(s.settings.daily_systems||{}),[date]:system};
+        s.settings.work_plan_dates={...(s.settings.work_plan_dates||{}),[date]:true};
+      }
     });
     return json({ok:true});
   }
@@ -200,7 +206,7 @@ async function handleApi(req:Request,hall:string,path:string){
     return json({ok:true});
   }
   if(path==="/api/settings"&&method==="POST"){
-    requireRole(u,["admin"]); const x:any=await body(req); const settings={employees:Array.isArray(x.employees)?x.employees:[],types:Array.isArray(x.types)?x.types:[],systems:Array.isArray(x.systems)?x.systems:[],holidays:Array.isArray(x.holidays)?x.holidays:[],break_groups:Array.isArray(x.break_groups)?x.break_groups:[],system_breaks:(x.system_breaks&&typeof x.system_breaks==="object"&&!Array.isArray(x.system_breaks))?x.system_breaks:{},employee_break_groups:(x.employee_break_groups&&typeof x.employee_break_groups==="object"&&!Array.isArray(x.employee_break_groups))?x.employee_break_groups:{},daily_systems:(x.daily_systems&&typeof x.daily_systems==="object"&&!Array.isArray(x.daily_systems))?x.daily_systems:{},seeded:x.seeded??1,seed_version:x.seed_version||"online"}; await mutateState(hall,u.username,(s:any)=>{ settings.additional_employees=(s.settings&&Array.isArray(s.settings.additional_employees))?s.settings.additional_employees:[];settings.employee_daily_systems=(s.settings&&s.settings.employee_daily_systems&&typeof s.settings.employee_daily_systems==="object"&&!Array.isArray(s.settings.employee_daily_systems))?s.settings.employee_daily_systems:{};s.settings=settings}); return json({ok:true});
+    requireRole(u,["admin"]); const x:any=await body(req); const settings={employees:Array.isArray(x.employees)?x.employees:[],types:Array.isArray(x.types)?x.types:[],systems:Array.isArray(x.systems)?x.systems:[],holidays:Array.isArray(x.holidays)?x.holidays:[],break_groups:Array.isArray(x.break_groups)?x.break_groups:[],system_breaks:(x.system_breaks&&typeof x.system_breaks==="object"&&!Array.isArray(x.system_breaks))?x.system_breaks:{},employee_break_groups:(x.employee_break_groups&&typeof x.employee_break_groups==="object"&&!Array.isArray(x.employee_break_groups))?x.employee_break_groups:{},daily_systems:(x.daily_systems&&typeof x.daily_systems==="object"&&!Array.isArray(x.daily_systems))?x.daily_systems:{},seeded:x.seeded??1,seed_version:x.seed_version||"online"}; await mutateState(hall,u.username,(s:any)=>{ settings.additional_employees=(s.settings&&Array.isArray(s.settings.additional_employees))?s.settings.additional_employees:[];settings.employee_daily_systems=(s.settings&&s.settings.employee_daily_systems&&typeof s.settings.employee_daily_systems==="object"&&!Array.isArray(s.settings.employee_daily_systems))?s.settings.employee_daily_systems:{};settings.work_plan_dates=(s.settings&&s.settings.work_plan_dates)||{};s.settings=settings}); return json({ok:true});
   }
   if(path==="/api/restore"&&method==="POST"){
     requireRole(u,["admin"]); const x:any=await body(req), d=x.data||{}; if(!d.settings||!Array.isArray(d.entries)||!Array.isArray(d.ratings))return json({error:"Nieprawidłowa kopia danych."},400); await mutateState(hall,u.username,(s:any)=>{s.settings=d.settings;s.entries=d.entries;s.ratings=d.ratings}); return json({ok:true});
