@@ -1244,11 +1244,12 @@ th{background:#f6f8f9}
 .daily-exception-custom input{width:112px;min-width:0;padding:9px;border:1px solid var(--line);border-radius:9px;background:#fff}
 .daily-exceptions-actions{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 6px}
 @media(max-width:500px){.daily-exception-row select{flex:1 1 100%}.daily-exception-row .btn{margin-left:auto}}
+ .plan-toolbar label{display:grid;gap:6px}.plan-toolbar input,.plan-toolbar select,#workPlanRows select{padding:10px;border:1px solid var(--line);border-radius:9px;background:white;max-width:100%}.plan-custom{display:flex;gap:10px;margin-top:8px}.plan-custom[hidden]{display:none}.plan-custom label{display:grid;gap:5px}.plan-custom input{width:110px;padding:8px}#workPlanRows td{padding:12px}#workPlanRows select{width:100%}@media(max-width:600px){.plan-toolbar{align-items:stretch}.plan-toolbar label,.plan-toolbar button{width:100%}#workPlanRows td{padding:8px}#workPlanRows td:first-child{max-width:140px;white-space:normal}.plan-custom{flex-wrap:wrap}}
 </style></head><body>
 <div id="login" class="login"><div class="box"><button type="button" class="btn secondary" onclick="location.href='./index.html'" style="width:100%;margin:0 0 14px">← Wróć do wyboru działu</button><div class="brand"><span class="brandmark" aria-hidden="true"><i></i><i></i><i></i></span><span class="brandtext"><span class="clima">Clima</span><span class="gold">Gold</span></span></div><h2>Automatycy</h2><div class="hint">Wspólna baza online</div><div class="field"><label>Login</label><input id="lu" value="brygadzista" autocomplete="username"></div><div class="field"><label>Hasło</label><input id="lp" type="password" autocomplete="current-password"></div><button class="btn" onclick="doLogin()">Zaloguj</button><div id="le" class="error"></div></div></div>
 <div id="app" class="app"><aside class="side"><div class="brand"><span class="brandmark" aria-hidden="true"><i></i><i></i><i></i></span><span class="brandtext"><span class="clima">Clima</span><span class="gold">Gold</span></span></div><span class="hall">AUTOMATYCY</span><div class="nav">
   <button class="active" data-v="dashboard"><span class="navsvg"><svg viewBox="0 0 24 24"><path d="M3 11 12 3l9 8v10h-6v-6H9v6H3V11Z"/></svg></span><span>Dashboard</span></button>
-  <button data-v="entries"><span class="navsvg"><svg viewBox="0 0 24 24"><path d="M6 2h12v3h3v17H3V5h3V2Zm2 3h8V4H8v1Zm-2 4v10h12V9H6Z"/></svg></span><span>Ewidencja</span></button>
+  <button data-v="workplan"><span class="navsvg"><svg viewBox="0 0 24 24"><path d="M3 4h18v18H3V4Zm2 6v10h14V10H5ZM7 2h2v5H7V2Zm8 0h2v5h-2V2Z"/></svg></span><span>Plan pracy</span></button><button data-v="entries"><span class="navsvg"><svg viewBox="0 0 24 24"><path d="M6 2h12v3h3v17H3V5h3V2Zm2 3h8V4H8v1Zm-2 4v10h12V9H6Z"/></svg></span><span>Ewidencja</span></button>
   <button data-v="stats"><span class="navsvg"><svg viewBox="0 0 24 24"><path d="M4 20h3V10H4v10Zm6 0h4V4h-4v16Zm7 0h3V7h-3v13Z"/></svg></span><span>Statystyki</span></button>
   <button data-v="ratings"><span class="navsvg"><svg viewBox="0 0 24 24"><path d="m12 2 3 6 6.5 1-4.8 4.7 1.1 6.6L12 17.2l-5.8 3.1 1.1-6.6L2.5 9 9 8l3-6Z"/></svg></span><span>Oceny</span></button>
   <button data-v="settings"><span class="navsvg"><svg viewBox="0 0 24 24"><path d="M19.4 13a7.8 7.8 0 0 0 0-2l2-1.6-2-3.5-2.5 1a7.8 7.8 0 0 0-1.7-1L14.8 3h-4l-.4 2.9a7.8 7.8 0 0 0-1.7 1l-2.5-1-2 3.5 2 1.6a7.8 7.8 0 0 0 0 2l-2 1.6 2 3.5 2.5-1a7.8 7.8 0 0 0 1.7 1l.4 2.9h4l.4-2.9a7.8 7.8 0 0 0 1.7-1l2.5 1 2-3.5-2-1.6ZM12.8 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8Z"/></svg></span><span>Ustawienia</span></button>
@@ -1339,6 +1340,12 @@ th{background:#f6f8f9}
   </div>
 </section>
 
+<section id="workplan" class="view">
+ <div class="today-system-card"><div><h2>Plan pracy</h2><div class="muted">Ustaw system dla całego działu. Obok pracownika wybierz inne godziny lub wolne. Indywidualne wyjątki pozostają przy zmianie systemu działu.</div></div></div>
+ <div class="toolbar plan-toolbar"><label>Data <input id="workPlanDate" type="date" onchange="workPlanDateChanged()"></label><label>System dla wszystkich <select id="workPlanSystem" onchange="workPlanBaseChanged()"></select></label><button id="saveWorkPlan" class="btn" onclick="saveWorkPlan()">Zapisz plan dnia</button></div>
+ <p id="workPlanStatus" class="muted" role="status"></p>
+ <div class="tablewrap"><table><thead><tr><th>Pracownik</th><th>System pracy</th></tr></thead><tbody id="workPlanRows" oninput="workPlanChanged()"></tbody></table></div>
+</section>
 <section id="entries" class="view"><div class="toolbar"><button id="addbtn" class="btn" onclick="openEntry()">+ Dodaj wpis</button><button id="undoEntryDeleteBtn" class="btn secondary" style="display:none" onclick="undoDeletedEntry()">↶ Cofnij usunięcie</button><input id="entryMonth" type="month" onchange="entryMonthChanged()" style="padding:10px;border:1px solid var(--line);border-radius:9px"><button id="entryAllBtn" class="btn secondary entryfilter active" onclick="setEntryFilter('all')">Wszystkie</button><button id="entryOngoingBtn" class="btn secondary entryfilter" onclick="setEntryFilter('ongoing')">W TOKU</button><button id="entryStoppedBtn" class="btn secondary entryfilter" onclick="setEntryFilter('stopped')">ZATRZYMANE</button><button id="entryDoneBtn" class="btn secondary entryfilter" onclick="setEntryFilter('done')">ZAKOŃCZONE</button><select id="entryTypeFilter" onchange="renderEntries()" class="entryselect"><option value="">Wszystkie rodzaje central</option></select><select id="entryEmployeeFilter" onchange="renderEntries()" class="entryselect"><option value="">Wszyscy pracownicy</option></select><input id="search" placeholder="Szukaj nr, pracownika lub typu" oninput="renderEntries()" style="padding:10px;border:1px solid var(--line);border-radius:9px;min-width:240px"></div><div class="tablewrap"><table><thead><tr><th class="actioncol">Akcje</th><th>Data</th><th>Nr</th><th>Typ</th><th>Pracownicy</th><th>System</th><th>Czas</th><th>Uwagi</th></tr></thead><tbody id="et"></tbody></table></div></section>
 <section id="stats" class="view">
   <div class="toolbar">
@@ -1978,7 +1985,7 @@ function hm(x){var z=(x||'').split(':');return(+z[0]||0)*60+(+z[1]||0)}
 function employeeDays(e,name,i){
   var a=Array.isArray(e.employee_systems)?e.employee_systems:[],r=a.find(function(x,j){return(x.employee&&x.employee===name)||(!x.employee&&j===i)})||{},days=Array.isArray(r.days)?r.days:(Array.isArray(e.day_systems)?e.day_systems:[]);
   var fd=r.work_from_date||'',td=r.work_to_date||'';
-  return days.filter(function(x){return(!fd||x.date>=fd)&&(!td||x.date<=td)}).map(function(x){return employeeSystemException(x.date,name)==='Wolne / brak pracy'?Object.assign({},x,{system:'Wolne / brak pracy',breaks:[]}):x})
+  return days.filter(function(x){return(!fd||x.date>=fd)&&(!td||x.date<=td)}).map(function(x){var plan=plannedEmployeeSystem(x.date,name);return plan?Object.assign({},x,{system:plan,breaks:plan==='Wolne / brak pracy'?[]:(x.system===plan?x.breaks:undefined)}):x})
 }
 function employeeParticipation(e,name,i){
   var a=Array.isArray(e.employee_systems)?e.employee_systems:[],r=a.find(function(x,j){return(x.employee&&x.employee===name)||(!x.employee&&j===i)})||{};
@@ -2128,7 +2135,7 @@ async function saveTodaySystem(system){
   try{
     await api('/api/daily-system',{method:'POST',body:JSON.stringify({date:today,system:system||''})});
     D=await api('/api/data');
-    renderTodaySystemPicker();
+    renderTodaySystemPicker();renderWorkPlan();
   }catch(e){
     if(status)status.textContent='Nie udało się zapisać systemu.';
     if(sel)sel.disabled=false
@@ -2138,6 +2145,31 @@ async function saveTodaySystem(system){
 
 
 function dailyExceptionsDate(){var el=$('dailyExceptionsDate');if(el&&!el.value)el.value=localDate(new Date());return el?el.value:localDate(new Date())}
+var workPlanDirty=false;
+function workPlanDate(){var el=$('workPlanDate');if(!el.value)el.value=localDate(new Date());return el.value}
+function workPlanOptions(choice,base){return '<option value="">Według działu'+(base?' — '+esc(base):'')+'</option>'+['Wolne / brak pracy'].concat(D.settings.systems||[]).map(function(s){return '<option value="'+esc(s)+'"'+(s===choice?' selected':'')+'>'+esc(s==='Wolne / brak pracy'?'Wolne / nieobecny':s)+'</option>'}).join('')+'<option value="__custom__"'+(choice==='__custom__'?' selected':'')+'>Inny — własne godziny</option>'}
+function renderWorkPlan(force){
+ if(!$('workPlanRows')||!D||workPlanDirty&&!force)return;
+ var date=workPlanDate();$('workPlanDate').dataset.previous=date;var base=configuredSystemForDate(date),over=employeeDailyOverrides()[date]||{},readonly=!ME||ME.role==='viewer';
+ $('workPlanSystem').innerHTML='<option value="">Wybierz system dla wszystkich</option>'+(D.settings.systems||[]).map(function(s){return '<option value="'+esc(s)+'"'+(s===base?' selected':'')+'>'+esc(s)+'</option>'}).join('');
+ $('workPlanRows').innerHTML=allWorkers().map(function(name){var value=over[name]||'',custom=value&&value!=='Wolne / brak pracy'&&(D.settings.systems||[]).indexOf(value)<0,parts=exceptionTimeParts(custom?value:base);return '<tr data-employee="'+esc(name)+'"><td><b>'+esc(name)+'</b></td><td><select class="plan-choice" aria-label="System pracy: '+esc(name)+'" onchange="workPlanChanged(this)">'+workPlanOptions(custom?'__custom__':value,base)+'</select><div class="plan-custom"'+(custom?'':' hidden')+'><label>Od <input type="time" class="plan-from" value="'+esc(parts[0])+'"></label><label>Do <input type="time" class="plan-to" value="'+esc(parts[1])+'"></label></div></td></tr>'}).join('');
+ $('workPlanSystem').disabled=readonly;$('saveWorkPlan').hidden=readonly;
+ $('workPlanRows').querySelectorAll('select,input').forEach(function(el){el.disabled=readonly});
+ $('workPlanStatus').textContent=readonly?'Plan dnia — tylko podgląd.':'Zmiany dotyczą wszystkich central z wybranej daty.';workPlanDirty=false
+}
+function workPlanChanged(sel){if(sel){var row=sel.closest('tr');row.querySelector('.plan-custom').hidden=sel.value!=='__custom__'}workPlanDirty=true;$('workPlanStatus').textContent='Masz niezapisane zmiany.'}
+function workPlanBaseChanged(){var base=$('workPlanSystem').value;$('workPlanRows').querySelectorAll('.plan-choice').forEach(function(sel){sel.options[0].textContent='Według działu'+(base?' — '+base:'')});workPlanChanged()}
+function workPlanDateChanged(){if(workPlanDirty&&!confirm('Zmienić datę i odrzucić niezapisane zmiany planu?')){$('workPlanDate').value=$('workPlanDate').dataset.previous;return}workPlanDirty=false;renderWorkPlan(true);$('workPlanDate').dataset.previous=workPlanDate()}
+async function saveWorkPlan(){
+ if(!ME||ME.role==='viewer')return;
+ var date=workPlanDate(),system=$('workPlanSystem').value,map={},ok=true;
+ $('workPlanRows').querySelectorAll('tr').forEach(function(row){var choice=row.querySelector('.plan-choice').value;if(choice==='__custom__')choice=row.querySelector('.plan-from').value+'-'+row.querySelector('.plan-to').value;if(!choice)return;if(choice!=='Wolne / brak pracy'&&!validExceptionHours(choice)){ok=false;return}map[row.dataset.employee]=choice});
+ if(!system||!ok){$('workPlanStatus').textContent='Wybierz system dla działu i uzupełnij poprawne godziny od–do.';return}
+ $('saveWorkPlan').disabled=true;$('workPlanStatus').textContent='Zapisywanie…';
+ try{await api('/api/work-plan',{method:'POST',body:JSON.stringify({date:date,system:system,employees:map})});D=await api('/api/data');workPlanDirty=false;renderAll();$('workPlanStatus').textContent='Zapisano plan na '+date+'.'}catch(e){$('workPlanStatus').textContent='Nie udało się zapisać: '+e.message}finally{$('saveWorkPlan').disabled=false}
+}
+function plannedEmployeeSystem(date,name){return employeeSystemException(date,name)||((D.settings.work_plan_dates||{})[date]?configuredSystemForDate(date):'')}
+
 function employeeDailyOverrides(){
   var map=D&&D.settings&&D.settings.employee_daily_systems;
   return map&&typeof map==='object'&&!Array.isArray(map)?map:{}
@@ -2282,7 +2314,7 @@ function renderDashboardTest(){
 }
 
 function renderAll(){
-  renderDashboardTest();renderTodaySystemPicker();renderDailyExceptions();renderSettings();renderUsers();renderRatings();
+  renderWorkPlan();renderDashboardTest();renderTodaySystemPicker();renderDailyExceptions();renderSettings();renderUsers();renderRatings();
   var old=$('statType').value,oldStatEmp=$('statEmployee')?$('statEmployee').value:'';
   $('statType').innerHTML='<option value="">Wszystkie rodzaje</option>'+visibleDeviceTypes().map(function(t){return'<option'+(t===old?' selected':'')+'>'+esc(t)+'</option>'}).join('');
   if($('statEmployee'))$('statEmployee').innerHTML='<option value="">Wszyscy pracownicy</option>'+(D.settings.employees||[]).map(function(n){return'<option value="'+esc(n)+'"'+(n===oldStatEmp?' selected':'')+'>'+esc(n)+'</option>'}).join('');
@@ -2600,6 +2632,7 @@ function renderEmpDayBox(block,existing){
   for(var d=new Date(a);d<=b;d.setDate(d.getDate()+1)){
     var ds=localDate(d),autoFree=isAutoFreeDay(d),sat=isSaturday(d),saved=prev[ds],sy;
     if(employeeSystemException(ds,block.querySelector('.emp').value)==='Wolne / brak pracy'||autoFree)sy='Wolne / brak pracy';
+    else if(plannedEmployeeSystem(ds,block.querySelector('.emp').value))sy=plannedEmployeeSystem(ds,block.querySelector('.emp').value);
     else if(saved!==undefined)sy=saved.system;
     else if(sat&&!employeeSystemException(ds,block.querySelector('.emp').value)&&!configuredSystemForDate(ds))sy='Wolne / brak pracy';
     else sy=defaultSystemForDate(ds,block.querySelector('.emp').value);
