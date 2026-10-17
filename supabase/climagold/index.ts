@@ -171,7 +171,7 @@ async function handleApi(req:Request,hall:string,path:string){
         const manual=/^(?:[01]\d|2[0-3]):[0-5]\d-(?:[01]\d|2[0-3]):[0-5]\d$/.test(sys);
         const hours=manual?sys.split("-"):["",""];
         const validManual=manual&&hours[1]>hours[0];
-        if(!allowed.has(name)||(!systems.has(sys)&&!validManual))
+        if(!allowed.has(name)||(sys!=="Wolne / brak pracy"&&!systems.has(sys)&&!validManual))
           throw Object.assign(new Error("Wybierz pracownika i prawidłowe godziny pracy (od–do w tym samym dniu)."),{status:400});
         next[name]=sys;
       }
