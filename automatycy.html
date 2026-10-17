@@ -1237,7 +1237,7 @@ th{background:#f6f8f9}
 .daily-exceptions-panel{margin-top:8px;padding:14px;border:1px solid var(--line);border-radius:14px;background:var(--card)}
 .daily-exceptions-panel[hidden]{display:none}
 .daily-exception-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:10px}
-.daily-exception-row select{flex:1 1 180px;min-width:0;padding:10px;border:1px solid var(--line);border-radius:9px;background:#fff}
+.daily-exception-hour{display:flex;align-items:center;gap:5px;font-weight:600;font-size:13px;white-space:nowrap}.daily-exception-hour input{width:120px;min-width:0;padding:10px;border:1px solid var(--line);border-radius:9px;background:#fff}.daily-exception-row select{flex:1 1 180px;min-width:0;padding:10px;border:1px solid var(--line);border-radius:9px;background:#fff}
 .daily-exceptions-actions{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 6px}
 @media(max-width:500px){.daily-exception-row select{flex:1 1 100%}.daily-exception-row .btn{margin-left:auto}}
 </style></head><body>
@@ -1278,7 +1278,7 @@ th{background:#f6f8f9}
   <div class="daily-exceptions">
     <button type="button" class="btn secondary" id="dailyExceptionsToggle" onclick="toggleDailyExceptions()">Wyjątki pracowników <span id="dailyExceptionsCount"></span></button>
     <div id="dailyExceptionsPanel" class="daily-exceptions-panel" hidden>
-      <div class="muted">Na dzisiaj: każdemu pracownikowi możesz przypisać inny system. Pozostali mają zwykły system działu.</div>
+      <div class="muted">Wybierz pracownika i wpisz godziny od–do, np. 06:00–11:30. Nie musisz dodawać kolejnych systemów w ustawieniach. Pozostali pracują według systemu działu.</div>
       <div id="dailyExceptionsRows"></div>
       <div class="daily-exceptions-actions">
         <button type="button" class="btn secondary" id="addDailyExceptionBtn" onclick="addDailyExceptionRow()">+ Dodaj pracownika</button>
@@ -2152,13 +2152,31 @@ async function saveTodaySystem(system){
 }
 
 
+
 function employeeDailyOverrides(){
   var map=D&&D.settings&&D.settings.employee_daily_systems;
   return map&&typeof map==='object'&&!Array.isArray(map)?map:{}
 }
+function exceptionClock(value){
+  var p=String(value||'').trim().match(/^(\d{1,2})(?::(\d{2}))?$/);
+  if(!p)return '';
+  var h=+p[1],m=+(p[2]||'0');
+  if(h>23||m>59)return '';
+  return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')
+}
+function exceptionTimeParts(value){
+  var p=String(value||'').split('-');
+  return p.length===2?[exceptionClock(p[0]),exceptionClock(p[1])]:['','']
+}
+function validExceptionHours(system){
+  var p=exceptionTimeParts(system);
+  if(!p[0]||!p[1])return false;
+  var a=parseSys(p[0]+'-'+p[1]);
+  return a[1]>a[0]
+}
 function employeeSystemException(ds,emp){
-  var overrides=employeeDailyOverrides(),byDate=overrides[ds]||{},chosen=byDate[emp]||'';
-  return (D.settings.systems||[]).indexOf(chosen)>=0?chosen:''
+  var byDate=employeeDailyOverrides()[ds]||{},chosen=byDate[emp]||'';
+  return chosen&&validExceptionHours(chosen)?chosen:''
 }
 function toggleDailyExceptions(){
   var panel=$('dailyExceptionsPanel');if(!panel)return;
@@ -2167,11 +2185,15 @@ function toggleDailyExceptions(){
 }
 function dailyExceptionRow(name,system){
   var container=$('dailyExceptionsRows');if(!container)return;
-  var available=allWorkers(),systems=D.settings.systems||[];
+  var workers=allWorkers();
+  var base=system||configuredSystemForDate(localDate(new Date()))||(D.settings.systems||[])[0]||'';
+  var times=exceptionTimeParts(base);
   var row=document.createElement('div');row.className='daily-exception-row';
-  var names='<option value="">Wybierz pracownika</option>'+available.map(function(n){return'<option value="'+esc(n)+'"'+(n===name?' selected':'')+'>'+esc(n)+'</option>'}).join('');
-  var sys='<option value="">Wybierz system</option>'+systems.map(function(v){return'<option value="'+esc(v)+'"'+(v===system?' selected':'')+'>'+esc(v)+'</option>'}).join('');
-  row.innerHTML='<select class="daily-exception-emp" aria-label="Pracownik">'+names+'</select><select class="daily-exception-system" aria-label="System pracy">'+sys+'</select><button type="button" class="btn danger" onclick="removeDailyExceptionRow(this)">Usuń</button>';
+  var names='<option value="">Wybierz pracownika</option>'+workers.map(function(n){return'<option value="'+esc(n)+'"'+(n===name?' selected':'')+'>'+esc(n)+'</option>'}).join('');
+  row.innerHTML='<select class="daily-exception-emp" aria-label="Pracownik">'+names+'</select>'+
+    '<label class="daily-exception-hour">Od <input class="daily-exception-from" type="time" step="60" value="'+esc(times[0])+'" aria-label="Godzina rozpoczęcia"></label>'+
+    '<label class="daily-exception-hour">Do <input class="daily-exception-to" type="time" step="60" value="'+esc(times[1])+'" aria-label="Godzina zakończenia"></label>'+
+    '<button type="button" class="btn danger" onclick="removeDailyExceptionRow(this)">Usuń</button>';
   container.appendChild(row)
 }
 function addDailyExceptionRow(){
@@ -2185,33 +2207,35 @@ function removeDailyExceptionRow(btn){
 function renderDailyExceptions(){
   var container=$('dailyExceptionsRows'),counter=$('dailyExceptionsCount');
   if(!container||!D)return;
-  var byDate=employeeDailyOverrides()[localDate(new Date())]||{},workers=allWorkers(),valid=D.settings.systems||[];
-  var rows=Object.keys(byDate).filter(function(n){return workers.indexOf(n)>=0&&valid.indexOf(byDate[n])>=0});
+  var byDate=employeeDailyOverrides()[localDate(new Date())]||{},workers=allWorkers();
+  var rows=Object.keys(byDate).filter(function(n){return workers.indexOf(n)>=0&&validExceptionHours(byDate[n])});
   if(counter)counter.textContent=rows.length?'('+rows.length+')':'';
   container.innerHTML='';
   rows.forEach(function(n){dailyExceptionRow(n,byDate[n])});
   var readonly=!ME||ME.role==='viewer';
   $('addDailyExceptionBtn').style.display=readonly?'none':'';
   $('saveDailyExceptionsBtn').style.display=readonly?'none':'';
-  [].slice.call(container.querySelectorAll('select,.btn')).forEach(function(x){x.disabled=readonly});
+  [].slice.call(container.querySelectorAll('select,input,.btn')).forEach(function(x){x.disabled=readonly});
   var st=$('dailyExceptionsStatus');
-  if(st)st.textContent=readonly?'Wyjątki na dziś (tylko podgląd).':'Dodaj pracownika i wybierz jego indywidualny system pracy na dziś.'
+  if(st)st.textContent=readonly?'Wyjątki na dziś (tylko podgląd).':'Wybierz pracownika i wpisz godziny od–do, np. 06:00–11:30. Obowiązują tylko dziś.'
 }
 async function saveDailyExceptions(){
   if(!ME||ME.role==='viewer')return;
   var map={},ok=true;
   document.querySelectorAll('#dailyExceptionsRows .daily-exception-row').forEach(function(row){
-    var name=row.querySelector('.daily-exception-emp').value,system=row.querySelector('.daily-exception-system').value;
-    if(!name||!system||Object.prototype.hasOwnProperty.call(map,name)){ok=false;return}
+    var name=row.querySelector('.daily-exception-emp').value;
+    var from=row.querySelector('.daily-exception-from').value,to=row.querySelector('.daily-exception-to').value;
+    var system=from+'-'+to;
+    if(!name||!validExceptionHours(system)||Object.prototype.hasOwnProperty.call(map,name)){ok=false;return}
     map[name]=system
   });
-  if(!ok){alert('Wybierz pracownika i system w każdym wierszu. Nie powtarzaj tej samej osoby.');return}
+  if(!ok){alert('Wybierz osobę i poprawne godziny. Koniec musi być po początku tego samego dnia; pracownik nie może występować dwa razy.');return}
   var save=$('saveDailyExceptionsBtn'),st=$('dailyExceptionsStatus');
   save.disabled=true;if(st)st.textContent='Zapisywanie wyjątków…';
   try{
     await api('/api/employee-daily-systems',{method:'POST',body:JSON.stringify({date:localDate(new Date()),employees:map})});
     D=await api('/api/data');renderTodaySystemPicker();renderDailyExceptions();
-    if(st)st.textContent='Zapisano. Nowe wpisy automatycznie uwzględnią wyjątki na dziś.'
+    if(st)st.textContent='Zapisano. Nowe wpisy automatycznie uwzględnią godziny wybranych pracowników.'
   }catch(e){
     if(st)st.textContent='Błąd zapisu: '+e.message;
   }finally{save.disabled=false}
@@ -2590,7 +2614,7 @@ function renderEmpDayBox(block,existing){
     row.dataset.date=ds;
     row.dataset.savedSystem=sy||'';
     if(saved&&Array.isArray(saved.breaks))row.dataset.breaks=JSON.stringify(saved.breaks);
-    row.innerHTML='<b>'+ds+(sat?' <span class="satbadge">SOBOTA</span>':'')+'</b><select onchange="daySystemChanged(this)">'+opts(['Wolne / brak pracy'].concat(D.settings.systems),sy)+'</select>';
+    row.innerHTML='<b>'+ds+(sat?' <span class="satbadge">SOBOTA</span>':'')+'</b><select onchange="daySystemChanged(this)">'+opts(['Wolne / brak pracy'].concat(D.settings.systems).concat(sy&&sy!=='Wolne / brak pracy'&&(D.settings.systems||[]).indexOf(sy)<0?[sy]:[]),sy)+'</select>';
     box.appendChild(row)
   }
   updateScheduledBreakInfo(block)
