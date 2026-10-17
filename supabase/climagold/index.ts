@@ -168,7 +168,7 @@ async function handleApi(req:Request,hall:string,path:string){
       const next:any={};
       for(const [name,value] of Object.entries(wanted)){
         const sys=String(value);
-        const manual=/^(?:[01]\\d|2[0-3]):[0-5]\\d-(?:[01]\\d|2[0-3]):[0-5]\\d$/.test(sys);
+        const manual=/^(?:[01]\d|2[0-3]):[0-5]\d-(?:[01]\d|2[0-3]):[0-5]\d$/.test(sys);
         const hours=manual?sys.split("-"):["",""];
         const validManual=manual&&hours[1]>hours[0];
         if(!allowed.has(name)||(!systems.has(sys)&&!validManual))
