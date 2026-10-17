@@ -2004,26 +2004,6 @@ function centralWorkMins(e){
   }
   return total
 }
-function saturdayNeedsConfirmation(x){
-  if(!x.start_date)return true;
-  var a=new Date(x.start_date+'T00:00'),b=x.end_date?new Date(x.end_date+'T00:00'):a;
-  if(b<a)return true;
-  var systems=Array.isArray(x.employee_systems)?x.employee_systems:[];
-  for(var d=new Date(a);d<=b;d.setDate(d.getDate()+1)){
-    if(!isSaturday(d)||isPolishHoliday(d))continue;
-    var ds=localDate(d),anyWork=false;
-    systems.forEach(function(es){
-      (es.days||[]).forEach(function(row){
-        if(row.date===ds&&row.system&&row.system!=='Wolne / brak pracy')anyWork=true
-      })
-    });
-    if(!anyWork){
-      if(!confirm('Sobota '+ds+' jest ustawiona jako WOLNE.\n\nCzy potwierdzasz, że tego dnia nie było pracy?\n\nOK = wolne\nAnuluj = wróć i ustaw system pracy.'))return false
-    }
-  }
-  return true
-}
-
 
 function hm(x){var z=(x||'').split(':');return(+z[0]||0)*60+(+z[1]||0)}
 function employeeDays(e,name,i){
@@ -2651,7 +2631,7 @@ function renderEmpDayBox(block,existing){
     var ds=localDate(d),autoFree=isAutoFreeDay(d),sat=isSaturday(d),saved=prev[ds],sy;
     if(autoFree)sy='Wolne / brak pracy';
     else if(saved!==undefined)sy=saved.system;
-    else if(sat&&!employeeSystemException(ds,block.querySelector('.emp').value))sy='Wolne / brak pracy';
+    else if(sat&&!employeeSystemException(ds,block.querySelector('.emp').value)&&!configuredSystemForDate(ds))sy='Wolne / brak pracy';
     else sy=defaultSystemForDate(ds,block.querySelector('.emp').value);
     var row=document.createElement('div');
     row.className='dayrow empdayrow'+(sat?' saturdayrow':'');
@@ -2683,7 +2663,7 @@ function quickNowParts(){var d=new Date();return{date:localDate(d),time:String(d
 function quickStartWork(){var n=quickNowParts();$('sd').value=n.date;$('stt').value=n.time;if(!$('ed').value)$('ed').value='';if(!$('ett').value)$('ett').value='';refreshEmpDays()}
 function quickEndWork(){var n=quickNowParts();if(!$('sd').value)$('sd').value=n.date;if(!$('stt').value)$('stt').value=n.time;$('ed').value=n.date;$('ett').value=n.time;refreshEmpDays()}
 function closeEntry(){$('modal').classList.remove('open')}
-async function saveEntry(){var employees=[],corrections=[],employee_systems=[];document.querySelectorAll('.empblock').forEach(function(block){var emp=block.querySelector('.emp').value;if(!emp)return;var group=(block.querySelector('.breakgroup')||{}).value||'A';employees.push(emp);corrections.push(+block.querySelector('.corr').value||0);employee_systems.push({employee:emp,break_group:group,days:[].slice.call(block.querySelectorAll('.empdayrow')).map(function(r){return{date:r.dataset.date,system:r.querySelector('select').value,breaks:dayBreakSnapshot(r,group)}}),work_from_date:block.querySelector('.pfromd').value,work_from_time:block.querySelector('.pfromt').value,work_to_date:block.querySelector('.ptod').value,work_to_time:block.querySelector('.ptot').value,pauses:collectPauses(block)})});var section=(isMontazHall()&&isSplitDeviceType($('dt').value))?selectedSections().join('/'):'';if(isMontazHall()&&isSplitDeviceType($('dt').value)&&!section){alert('Wybierz sekcję centrali dzielonej.');return}var x={id:$('eid').value?+$('eid').value:undefined,start_date:$('sd').value,end_date:$('ed').value,device_type:$('dt').value,number:$('no').value,start_time:$('stt').value,end_time:$('ett').value,day_systems:employee_systems[0]?employee_systems[0].days:[],employee_systems:employee_systems,employees:employees,corrections:corrections,notes:notesWithSection($('notes').value,section),mark_color:$('markcolor').value,additional_employees:employees.filter(function(n){return extraWorkers().indexOf(n)>=0||(D.entries||[]).some(function(old){return +old.id===+($('eid').value||0)&&entryExtraNames(old).indexOf(n)>=0})})};if(!x.start_date||!x.start_time){alert('Uzupełnij datę i godzinę rozpoczęcia');return}if((x.end_date&&!x.end_time)||(!x.end_date&&x.end_time)){alert('Uzupełnij jednocześnie datę i godzinę zakończenia');return}if(x.end_date&&x.end_date<x.start_date){alert('Błędna data zakończenia');return}if(HALL==='AUTO'&&x.employees.filter(function(n){return extraWorkers().indexOf(n)<0}).length>1){alert('Automatycy: tylko jeden stały pracownik; można dodać pomoc serwisu.');return}if(!saturdayNeedsConfirmation(x))return;await api('/api/entry',{method:'POST',body:JSON.stringify(x)});D=await api('/api/data');closeEntry();renderAll()}
+async function saveEntry(){var employees=[],corrections=[],employee_systems=[];document.querySelectorAll('.empblock').forEach(function(block){var emp=block.querySelector('.emp').value;if(!emp)return;var group=(block.querySelector('.breakgroup')||{}).value||'A';employees.push(emp);corrections.push(+block.querySelector('.corr').value||0);employee_systems.push({employee:emp,break_group:group,days:[].slice.call(block.querySelectorAll('.empdayrow')).map(function(r){return{date:r.dataset.date,system:r.querySelector('select').value,breaks:dayBreakSnapshot(r,group)}}),work_from_date:block.querySelector('.pfromd').value,work_from_time:block.querySelector('.pfromt').value,work_to_date:block.querySelector('.ptod').value,work_to_time:block.querySelector('.ptot').value,pauses:collectPauses(block)})});var section=(isMontazHall()&&isSplitDeviceType($('dt').value))?selectedSections().join('/'):'';if(isMontazHall()&&isSplitDeviceType($('dt').value)&&!section){alert('Wybierz sekcję centrali dzielonej.');return}var x={id:$('eid').value?+$('eid').value:undefined,start_date:$('sd').value,end_date:$('ed').value,device_type:$('dt').value,number:$('no').value,start_time:$('stt').value,end_time:$('ett').value,day_systems:employee_systems[0]?employee_systems[0].days:[],employee_systems:employee_systems,employees:employees,corrections:corrections,notes:notesWithSection($('notes').value,section),mark_color:$('markcolor').value,additional_employees:employees.filter(function(n){return extraWorkers().indexOf(n)>=0||(D.entries||[]).some(function(old){return +old.id===+($('eid').value||0)&&entryExtraNames(old).indexOf(n)>=0})})};if(!x.start_date||!x.start_time){alert('Uzupełnij datę i godzinę rozpoczęcia');return}if((x.end_date&&!x.end_time)||(!x.end_date&&x.end_time)){alert('Uzupełnij jednocześnie datę i godzinę zakończenia');return}if(x.end_date&&x.end_date<x.start_date){alert('Błędna data zakończenia');return}if(HALL==='AUTO'&&x.employees.filter(function(n){return extraWorkers().indexOf(n)<0}).length>1){alert('Automatycy: tylko jeden stały pracownik; można dodać pomoc serwisu.');return}await api('/api/entry',{method:'POST',body:JSON.stringify(x)});D=await api('/api/data');closeEntry();renderAll()}
 async function delEntry(id){
   var old=(D.entries||[]).find(function(e){return +e.id===+id});
   if(!confirm('Usunąć wpis centrali '+(old&&old.number||'')+'? Będzie można go przywrócić przyciskiem „Cofnij usunięcie”.'))return;
