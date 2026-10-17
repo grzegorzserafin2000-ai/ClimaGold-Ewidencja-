@@ -2600,7 +2600,7 @@ function renderEmpDayBox(block,existing){
     var ds=localDate(d),autoFree=isAutoFreeDay(d),sat=isSaturday(d),saved=prev[ds],sy;
     if(autoFree)sy='Wolne / brak pracy';
     else if(saved!==undefined)sy=saved.system;
-    else if(sat&&!employeeSystemException(ds,block.querySelector('.emp').value))sy='Wolne / brak pracy';
+    else if(sat&&!employeeSystemException(ds,block.querySelector('.emp').value)&&!configuredSystemForDate(ds))sy='Wolne / brak pracy';
     else sy=defaultSystemForDate(ds,block.querySelector('.emp').value);
     var row=document.createElement('div');
     row.className='dayrow empdayrow'+(sat?' saturdayrow':'');
