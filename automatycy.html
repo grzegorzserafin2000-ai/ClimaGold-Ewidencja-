@@ -1341,8 +1341,8 @@ th{background:#f6f8f9}
 </section>
 
 <section id="workplan" class="view">
- <div class="today-system-card"><div><h2>Plan pracy</h2><div class="muted">Ustaw system dla całego działu. Obok pracownika wybierz inne godziny lub wolne. Indywidualne wyjątki pozostają przy zmianie systemu działu.</div></div></div>
- <div class="toolbar plan-toolbar"><label>Data <input id="workPlanDate" type="date" onchange="workPlanDateChanged()"></label><label>System dla wszystkich <select id="workPlanSystem" onchange="workPlanBaseChanged()"></select></label><button id="saveWorkPlan" class="btn" onclick="saveWorkPlan()">Zapisz plan dnia</button></div>
+ <div class="today-system-card"><div><h2>Plan pracy</h2><div class="muted">Ustaw system dla stałych pracowników. Dodatkowi mają domyślnie Nie pracuje — ustaw im godziny tylko wtedy, gdy przyjdą pomagać. Indywidualne wyjątki pozostają przy zmianie systemu działu.</div></div></div>
+ <div class="toolbar plan-toolbar"><label>Data <input id="workPlanDate" type="date" onchange="workPlanDateChanged()"></label><label>System dla stałych pracowników <select id="workPlanSystem" onchange="workPlanBaseChanged()"></select></label><button id="saveWorkPlan" class="btn" onclick="saveWorkPlan()">Zapisz plan dnia</button></div>
  <p id="workPlanStatus" class="muted" role="status"></p>
  <div class="tablewrap"><table><thead><tr><th>Pracownik</th><th>System pracy</th></tr></thead><tbody id="workPlanRows" oninput="workPlanChanged()"></tbody></table></div>
 </section>
@@ -2150,25 +2150,27 @@ function workPlanDate(){var el=$('workPlanDate');if(!el.value)el.value=localDate
 function workPlanOptions(choice,base){return '<option value="">Według działu'+(base?' — '+esc(base):'')+'</option>'+['Wolne / brak pracy'].concat(D.settings.systems||[]).map(function(s){return '<option value="'+esc(s)+'"'+(s===choice?' selected':'')+'>'+esc(s==='Wolne / brak pracy'?'Wolne / nieobecny':s)+'</option>'}).join('')+'<option value="__custom__"'+(choice==='__custom__'?' selected':'')+'>Inny — własne godziny</option>'}
 function renderWorkPlan(force){
  if(!$('workPlanRows')||!D||workPlanDirty&&!force)return;
- var date=workPlanDate();$('workPlanDate').dataset.previous=date;var base=configuredSystemForDate(date),over=employeeDailyOverrides()[date]||{},readonly=!ME||ME.role==='viewer';
- $('workPlanSystem').innerHTML='<option value="">Wybierz system dla wszystkich</option>'+(D.settings.systems||[]).map(function(s){return '<option value="'+esc(s)+'"'+(s===base?' selected':'')+'>'+esc(s)+'</option>'}).join('');
- $('workPlanRows').innerHTML=allWorkers().map(function(name){var value=over[name]||'',custom=value&&value!=='Wolne / brak pracy'&&(D.settings.systems||[]).indexOf(value)<0,parts=exceptionTimeParts(custom?value:base);return '<tr data-employee="'+esc(name)+'"><td><b>'+esc(name)+'</b></td><td><select class="plan-choice" aria-label="System pracy: '+esc(name)+'" onchange="workPlanChanged(this)">'+workPlanOptions(custom?'__custom__':value,base)+'</select><div class="plan-custom"'+(custom?'':' hidden')+'><label>Od <input type="time" class="plan-from" value="'+esc(parts[0])+'"></label><label>Do <input type="time" class="plan-to" value="'+esc(parts[1])+'"></label></div></td></tr>'}).join('');
+ var date=workPlanDate();$('workPlanDate').dataset.previous=date;var base=configuredSystemForDate(date),over=employeeDailyOverrides()[date]||{},readonly=!ME||ME.role==='viewer',extras=extraWorkers();
+ $('workPlanSystem').innerHTML='<option value="">Wybierz system dla stałych pracowników</option>'+(D.settings.systems||[]).map(function(s){return '<option value="'+esc(s)+'"'+(s===base?' selected':'')+'>'+esc(s)+'</option>'}).join('');
+ function row(name,extra){var value=over[name]||(extra?'Wolne / brak pracy':''),custom=value&&value!=='Wolne / brak pracy'&&(D.settings.systems||[]).indexOf(value)<0,parts=exceptionTimeParts(custom?value:base),options=workPlanOptions(custom?'__custom__':value,base);if(extra)options=options.slice(options.indexOf('</option>')+9).replace('Wolne / nieobecny','Nie pracuje');return '<tr data-employee="'+esc(name)+'" data-extra="'+(extra?'1':'0')+'"><td><b>'+esc(name)+'</b></td><td><select class="plan-choice" aria-label="System pracy: '+esc(name)+'" onchange="workPlanChanged(this)">'+options+'</select><div class="plan-custom"'+(custom?'':' hidden')+'><label>Od <input type="time" class="plan-from" value="'+esc(parts[0])+'"></label><label>Do <input type="time" class="plan-to" value="'+esc(parts[1])+'"></label></div></td></tr>'}
+ var workers=allWorkers().filter(function(name){return extras.indexOf(name)<0});
+ $('workPlanRows').innerHTML='<tr class="plan-group"><th colspan="2">Pracownicy stali</th></tr>'+workers.map(function(name){return row(name,false)}).join('')+(extras.length?'<tr class="plan-group"><th colspan="2">Pracownicy dodatkowi — domyślnie nie pracują</th></tr>'+extras.map(function(name){return row(name,true)}).join(''):'');
  $('workPlanSystem').disabled=readonly;$('saveWorkPlan').hidden=readonly;
  $('workPlanRows').querySelectorAll('select,input').forEach(function(el){el.disabled=readonly});
- $('workPlanStatus').textContent=readonly?'Plan dnia — tylko podgląd.':'Zmiany dotyczą wszystkich central z wybranej daty.';workPlanDirty=false
+ $('workPlanStatus').textContent=readonly?'Plan dnia — tylko podgląd.':'Wspólny system dotyczy stałych pracowników. Dodatkowym ustaw godziny tylko na dzień pomocy.';workPlanDirty=false
 }
 function workPlanChanged(sel){if(sel){var row=sel.closest('tr');row.querySelector('.plan-custom').hidden=sel.value!=='__custom__'}workPlanDirty=true;$('workPlanStatus').textContent='Masz niezapisane zmiany.'}
-function workPlanBaseChanged(){var base=$('workPlanSystem').value;$('workPlanRows').querySelectorAll('.plan-choice').forEach(function(sel){sel.options[0].textContent='Według działu'+(base?' — '+base:'')});workPlanChanged()}
+function workPlanBaseChanged(){var base=$('workPlanSystem').value;$('workPlanRows').querySelectorAll('tr[data-extra="0"] .plan-choice').forEach(function(sel){sel.options[0].textContent='Według działu'+(base?' — '+base:'')});workPlanChanged()}
 function workPlanDateChanged(){if(workPlanDirty&&!confirm('Zmienić datę i odrzucić niezapisane zmiany planu?')){$('workPlanDate').value=$('workPlanDate').dataset.previous;return}workPlanDirty=false;renderWorkPlan(true);$('workPlanDate').dataset.previous=workPlanDate()}
 async function saveWorkPlan(){
  if(!ME||ME.role==='viewer')return;
  var date=workPlanDate(),system=$('workPlanSystem').value,map={},ok=true;
- $('workPlanRows').querySelectorAll('tr').forEach(function(row){var choice=row.querySelector('.plan-choice').value;if(choice==='__custom__')choice=row.querySelector('.plan-from').value+'-'+row.querySelector('.plan-to').value;if(!choice)return;if(choice!=='Wolne / brak pracy'&&!validExceptionHours(choice)){ok=false;return}map[row.dataset.employee]=choice});
+ $('workPlanRows').querySelectorAll('tr[data-employee]').forEach(function(row){var choice=row.querySelector('.plan-choice').value;if(choice==='__custom__')choice=row.querySelector('.plan-from').value+'-'+row.querySelector('.plan-to').value;if(!choice)return;if(choice!=='Wolne / brak pracy'&&!validExceptionHours(choice)){ok=false;return}map[row.dataset.employee]=choice});
  if(!system||!ok){$('workPlanStatus').textContent='Wybierz system dla działu i uzupełnij poprawne godziny od–do.';return}
  $('saveWorkPlan').disabled=true;$('workPlanStatus').textContent='Zapisywanie…';
  try{await api('/api/work-plan',{method:'POST',body:JSON.stringify({date:date,system:system,employees:map})});D=await api('/api/data');workPlanDirty=false;renderAll();$('workPlanStatus').textContent='Zapisano plan na '+date+'.'}catch(e){$('workPlanStatus').textContent='Nie udało się zapisać: '+e.message}finally{$('saveWorkPlan').disabled=false}
 }
-function plannedEmployeeSystem(date,name){return employeeSystemException(date,name)||((D.settings.work_plan_dates||{})[date]?configuredSystemForDate(date):'')}
+function plannedEmployeeSystem(date,name){return employeeSystemException(date,name)||((D.settings.work_plan_dates||{})[date]?(extraWorkers().indexOf(name)>=0?'Wolne / brak pracy':configuredSystemForDate(date)):'')}
 
 function employeeDailyOverrides(){
   var map=D&&D.settings&&D.settings.employee_daily_systems;
