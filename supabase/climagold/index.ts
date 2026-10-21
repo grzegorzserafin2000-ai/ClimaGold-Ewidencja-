@@ -112,15 +112,17 @@ async function handleApi(req:Request,hall:string,path:string){
     const row=await loadState(hall), state=structuredClone(row.data||{}); delete state.users; if(u.role!=="admin"&&u.role!=="supervisor")delete state.deleted_entries; state.users=u.role==="admin"?await listUsers(hall):[]; state._online={version:row.version,updated_at:(await db.from("climagold_hall_state").select("updated_at,updated_by").eq("hall",hall).single()).data?.updated_at}; return json(state);
   }
   if(path==="/api/entry"&&method==="POST"){
-    requireRole(u,["admin","supervisor"]); const x:any=await body(req),resolutions=Array.isArray(x.assignment_resolutions)?x.assignment_resolutions:[];
+    requireRole(u,["admin","supervisor"]); const x:any=await body(req),resolutions=Array.isArray(x.assignment_resolutions)?x.assignment_resolutions:[],requestId=String(x.assignment_request_id||'').slice(0,100);
     const clean:any={id:x.id?Number(x.id):undefined,start_date:String(x.start_date||""),end_date:String(x.end_date||""),device_type:String(x.device_type||""),number:String(x.number||""),start_time:String(x.start_time||""),end_time:String(x.end_time||""),day_systems:Array.isArray(x.day_systems)?x.day_systems:[],employee_systems:Array.isArray(x.employee_systems)?x.employee_systems:[],employee_participation:Array.isArray(x.employee_participation)?x.employee_participation.slice(0,10).map((p:any)=>({employee:String(p?.employee||""),start_at:String(p?.start_at||""),end_at:String(p?.end_at||"")})):[],employees:Array.isArray(x.employees)?x.employees.slice(0,10):[],additional_employees:Array.isArray(x.additional_employees)?x.additional_employees.slice(0,10):[],corrections:Array.isArray(x.corrections)?x.corrections.slice(0,10).map((v:any)=>Number(v)||0):[0,0,0,0,0,0,0,0,0,0],notes:String(x.notes||""),mark_color:String(x.mark_color||"")};
     if(!clean.start_date||!clean.start_time)return json({error:"Uzupełnij datę i godzinę rozpoczęcia."},400);
     let savedId=Number(clean.id)||0;
     await mutateState(hall,u.username,(s:any)=>{
       s.entries=Array.isArray(s.entries)?s.entries:[];
+      if(!clean.id&&requestId){const duplicate=s.entries.find((e:any)=>e.assignment_request_id===requestId);if(duplicate){savedId=Number(duplicate.id);return}}
       if(clean.id&&!s.entries.some((e:any)=>Number(e.id)===Number(clean.id)))throw Object.assign(new Error("Nie znaleziono wpisu."),{status:404});
       const candidate=structuredClone(clean);
       if(!candidate.id)candidate.id=[...(s.entries||[]),...(s.deleted_entries||[]).map((z:any)=>z.entry||{})].reduce((m:number,e:any)=>Math.max(m,Number(e.id)||0),0)+1;
+      if(!clean.id&&requestId)candidate.assignment_request_id=requestId;
       cgResolveAssignments(s,candidate,resolutions);
       const index=s.entries.findIndex((e:any)=>Number(e.id)===Number(candidate.id));
       if(index>=0)s.entries[index]=candidate;else s.entries.unshift(candidate);
