@@ -2714,14 +2714,23 @@ function chooseAssignmentAction(conflict){
  })
 }
 async function saveEntryWithAssignments(entry){
- var resolutions=[];
- for(var attempt=0;attempt<10;attempt++){
-  try{return await api('/api/entry',{method:'POST',body:JSON.stringify(Object.assign({},entry,{assignment_resolutions:resolutions}))})}
-  catch(e){if(e.code!=='EMPLOYEE_BUSY'||!Array.isArray(e.conflicts))throw e;
-   for(var i=0;i<e.conflicts.length;i++){var c=e.conflicts[i],action=await chooseAssignmentAction(c);if(!action)return null;resolutions=resolutions.filter(function(r){return r.key!==c.key});resolutions.push({key:c.key,signature:c.signature,action:action})}
+ if(assignmentSavePending)return null;
+ assignmentSavePending=true;
+ var saveButton=document.querySelector('.entrysavebtn'),wasDisabled=saveButton?saveButton.disabled:false;
+ if(saveButton)saveButton.disabled=true;
+ try{
+  var resolutions=[],requestId=entry.id?'':(window.crypto&&crypto.randomUUID?crypto.randomUUID():'cg-'+Date.now()+'-'+Math.random().toString(36).slice(2));
+  for(var attempt=0;attempt<10;attempt++){
+   try{return await api('/api/entry',{method:'POST',body:JSON.stringify(Object.assign({},entry,{assignment_request_id:requestId,assignment_resolutions:resolutions}))})}
+   catch(e){if(e.code!=='EMPLOYEE_BUSY'||!Array.isArray(e.conflicts))throw e;
+    for(var i=0;i<e.conflicts.length;i++){var c=e.conflicts[i],action=await chooseAssignmentAction(c);if(!action)return null;resolutions=resolutions.filter(function(r){return r.key!==c.key});resolutions.push({key:c.key,signature:c.signature,action:action})}
+   }
   }
+  throw Error('Dane zmieniają się równocześnie. Spróbuj zapisać ponownie.')
+ }finally{
+  assignmentSavePending=false;
+  if(saveButton)saveButton.disabled=wasDisabled;
  }
- throw Error('Dane zmieniają się równocześnie. Spróbuj zapisać ponownie.')
 }
 
 async function saveEntry(){var employees=[],corrections=[],employee_systems=[];document.querySelectorAll('.empblock').forEach(function(block){var emp=block.querySelector('.emp').value;if(!emp)return;var group=(block.querySelector('.breakgroup')||{}).value||'A';employees.push(emp);corrections.push(+block.querySelector('.corr').value||0);employee_systems.push({employee:emp,break_group:group,days:[].slice.call(block.querySelectorAll('.empdayrow')).map(function(r){return{date:r.dataset.date,system:r.querySelector('select').value,breaks:dayBreakSnapshot(r,group)}}),work_from_date:block.querySelector('.pfromd').value,work_from_time:block.querySelector('.pfromt').value,work_to_date:block.querySelector('.ptod').value,work_to_time:block.querySelector('.ptot').value,pauses:collectPauses(block)})});var section=(isMontazHall()&&isSplitDeviceType($('dt').value))?selectedSections().join('/'):'';if(isMontazHall()&&isSplitDeviceType($('dt').value)&&!section){alert('Wybierz sekcję centrali dzielonej.');return}var x={id:$('eid').value?+$('eid').value:undefined,start_date:$('sd').value,end_date:$('ed').value,device_type:$('dt').value,number:$('no').value,start_time:$('stt').value,end_time:$('ett').value,day_systems:employee_systems[0]?employee_systems[0].days:[],employee_systems:employee_systems,employees:employees,corrections:corrections,notes:notesWithSection($('notes').value,section),mark_color:$('markcolor').value,additional_employees:employees.filter(function(n){return extraWorkers().indexOf(n)>=0||(D.entries||[]).some(function(old){return +old.id===+($('eid').value||0)&&entryExtraNames(old).indexOf(n)>=0})})};if(!x.start_date||!x.start_time){alert('Uzupełnij datę i godzinę rozpoczęcia');return}if((x.end_date&&!x.end_time)||(!x.end_date&&x.end_time)){alert('Uzupełnij jednocześnie datę i godzinę zakończenia');return}if(x.end_date&&x.end_date<x.start_date){alert('Błędna data zakończenia');return}if(HALL==='AUTO'&&x.employees.filter(function(n){return extraWorkers().indexOf(n)<0}).length>1){alert('Automatycy: tylko jeden stały pracownik; można dodać pomoc serwisu.');return}try{var saved=await saveEntryWithAssignments(x);if(!saved)return}catch(e){alert(e.message||'Nie udało się zapisać wpisu.');return}D=await api('/api/data');closeEntry();renderAll()}
