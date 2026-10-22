@@ -1351,7 +1351,7 @@ th{background:#f6f8f9}
  <p id="workPlanStatus" class="muted" role="status"></p>
  <div class="tablewrap"><table><thead><tr><th>Pracownik</th><th>System pracy</th></tr></thead><tbody id="workPlanRows" oninput="workPlanChanged()"></tbody></table></div>
 </section>
-<section id="entries" class="view"><div class="toolbar"><button id="addbtn" class="btn" onclick="openEntry()">+ Dodaj wpis</button><button id="undoEntryDeleteBtn" class="btn secondary" style="display:none" onclick="undoDeletedEntry()">↶ Cofnij usunięcie</button><input id="entryMonth" type="month" onchange="entryMonthChanged()" style="padding:10px;border:1px solid var(--line);border-radius:9px"><button id="entryAllBtn" class="btn secondary entryfilter active" onclick="setEntryFilter('all')">Wszystkie</button><button id="entryOngoingBtn" class="btn secondary entryfilter" onclick="setEntryFilter('ongoing')">W TOKU</button><button id="entryStoppedBtn" class="btn secondary entryfilter" onclick="setEntryFilter('stopped')">ZATRZYMANE</button><button id="entryDoneBtn" class="btn secondary entryfilter" onclick="setEntryFilter('done')">ZAKOŃCZONE</button><select id="entryTypeFilter" onchange="renderEntries()" class="entryselect"><option value="">Wszystkie rodzaje central</option></select><select id="entryEmployeeFilter" onchange="renderEntries()" class="entryselect"><option value="">Wszyscy pracownicy</option></select><input id="search" placeholder="Szukaj nr, pracownika lub typu" oninput="renderEntries()" style="padding:10px;border:1px solid var(--line);border-radius:9px;min-width:240px"></div><div class="tablewrap"><table><thead><tr><th class="actioncol">Akcje</th><th>Data</th><th>Nr</th><th>Typ</th><th>Pracownicy</th><th>System</th><th>Czas</th><th>Uwagi</th></tr></thead><tbody id="et"></tbody></table></div></section>
+<section id="entries" class="view"><div class="toolbar"><button id="addbtn" class="btn" onclick="openEntry()">+ Dodaj wpis</button><button id="undoEntryDeleteBtn" class="btn secondary" style="display:none" onclick="undoDeletedEntry()">↶ Cofnij usunięcie</button><input id="entryMonth" type="month" onchange="entryMonthChanged()" style="padding:10px;border:1px solid var(--line);border-radius:9px"><button id="exportEntriesXlsBtn" class="btn secondary" onclick="exportEntriesXLS()">Eksport XLS</button><button id="entryAllBtn" class="btn secondary entryfilter active" onclick="setEntryFilter('all')">Wszystkie</button><button id="entryOngoingBtn" class="btn secondary entryfilter" onclick="setEntryFilter('ongoing')">W TOKU</button><button id="entryStoppedBtn" class="btn secondary entryfilter" onclick="setEntryFilter('stopped')">ZATRZYMANE</button><button id="entryDoneBtn" class="btn secondary entryfilter" onclick="setEntryFilter('done')">ZAKOŃCZONE</button><select id="entryTypeFilter" onchange="renderEntries()" class="entryselect"><option value="">Wszystkie rodzaje central</option></select><select id="entryEmployeeFilter" onchange="renderEntries()" class="entryselect"><option value="">Wszyscy pracownicy</option></select><input id="search" placeholder="Szukaj nr, pracownika lub typu" oninput="renderEntries()" style="padding:10px;border:1px solid var(--line);border-radius:9px;min-width:240px"></div><div class="tablewrap"><table><thead><tr><th class="actioncol">Akcje</th><th>Data</th><th>Nr</th><th>Typ</th><th>Pracownicy</th><th>System</th><th>Czas</th><th>Uwagi</th></tr></thead><tbody id="et"></tbody></table></div></section>
 <section id="stats" class="view">
   <div class="toolbar">
     <input id="month" type="month" onchange="renderStats()" style="padding:9px">
@@ -2461,6 +2461,40 @@ function renderEntries(){
     var ac=ME.role==='viewer'?'':'<button class="btn secondary" onclick="openEntry('+e.id+')">Edytuj</button> '+(ME.role==='admin'||ME.role==='supervisor'?'<button class="btn danger" onclick="delEntry('+e.id+')">Usuń</button>':'');
     return'<tr class="mark-'+(e.mark_color||'none')+'"><td class="actioncol">'+ac+'</td><td>'+esc(e.start_date)+(e.end_date?' → '+esc(e.end_date):'')+' · '+esc(entryStatusText(e))+'</td><td><b>'+esc(e.number)+'</b></td><td>'+esc(entryDeviceLabel(e))+'</td><td>'+esc((e.employees||[]).join(', '))+'</td><td>'+esc(systemSummary(e))+'</td><td>'+esc(timeSummary(e))+'</td><td>'+esc(notesWithoutSection(e.notes))+'</td></tr>'
   }).join('')
+}
+function exportEntriesXLS(){
+  var month=$('entryMonth')?$('entryMonth').value:'',first=month?month+'-01':'',last=month?month+'-31':'',query=(($('search')&&$('search').value)||'').toLowerCase(),type=$('entryTypeFilter')?$('entryTypeFilter').value:'',employee=$('entryEmployeeFilter')?$('entryEmployeeFilter').value:'',mode=ENTRY_FILTER||'all';
+  var entries=(D.entries||[]).filter(function(e){
+    var text=((e.number||'')+' '+entryDeviceLabel(e)+' '+(e.employees||[]).join(' ')+' '+notesWithoutSection(e.notes||'')).toLowerCase();
+    var monthOk=!month||((e.start_date||'')<=last&&(!(e.end_date)||e.end_date>=first));
+    var statusOk=mode==='all'||(mode==='ongoing'&&!e.end_date&&!entryIsStopped(e))||(mode==='stopped'&&!e.end_date&&entryIsStopped(e))||(mode==='done'&&!!e.end_date);
+    return text.indexOf(query)>=0&&monthOk&&statusOk&&(!type||e.device_type===type)&&(!employee||(e.employees||[]).indexOf(employee)>=0)
+  });
+  if(!entries.length){alert('Brak wpisów dla wybranego miesiąca i filtrów.');return}
+  var people=employee?[employee]:(D.settings.employees||[]).slice(),seen={};
+  entries.forEach(function(e){(e.employees||[]).forEach(function(n){if(n&&people.indexOf(n)<0)people.push(n)})});
+  people=people.filter(function(n){if(!n||seen[n]||(employee&&n!==employee))return false;seen[n]=1;return true});
+  var total={},allRows=[['Data rozpoczęcia','Data zakończenia','Nr / oznaczenie','Typ centrali','Pracownicy','System pracy','Czas pracy','Status','Uwagi']];
+  entries.forEach(function(e){
+    allRows.push([e.start_date||'',e.end_date||'',e.number||'',entryDeviceLabel(e),(e.employees||[]).join(', '),systemSummary(e),timeSummary(e),entryStatusText(e),notesWithoutSection(e.notes||'')]);
+    (e.employees||[]).forEach(function(n,i){if(!n||employee&&n!==employee)return;if(!total[n])total[n]={count:0,minutes:0};total[n].count++;total[n].minutes+=effectiveMins(e,n,i)})
+  });
+  var rowsSummary=[['Pracownik','Liczba wpisów','Czas pracy łącznie']];
+  people.forEach(function(n){var x=total[n]||{count:0,minutes:0};rowsSummary.push([n,x.count,fmt(x.minutes)])});
+  var workbook='<?xml version="1.0" encoding="UTF-8"?><Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"><Styles><Style ss:ID="Title"><Font ss:Bold="1" ss:Size="14"/></Style><Style ss:ID="Header"><Font ss:Bold="1" ss:Color="#FFFFFF"/><Interior ss:Color="#1D2832" ss:Pattern="Solid"/></Style></Styles>';
+  function sheetName(value){var base=String(value||'Pracownik').replace(/[:\\/?*\[\]]/g,' ').trim().slice(0,31)||'Pracownik',name=base,n=2;while(usedSheets[name.toLowerCase()]){var suffix=' '+n++;name=base.slice(0,31-suffix.length)+suffix}usedSheets[name.toLowerCase()]=1;return name}
+  function addSheet(name,rows,widths){workbook+='<Worksheet ss:Name="'+xmlEsc(name)+'"><Table>';(widths||[]).forEach(function(w){workbook+='<Column ss:AutoFitWidth="1" ss:Width="'+w+'"/>'});rows.forEach(function(row,index){var style=index===0&&name==='Podsumowanie'?'Title':(row===rowsSummary[0]||row===allRows[0]||row[0]==='Data rozpoczęcia'?'Header':'');workbook+='<Row>'+row.map(function(v){return'<Cell'+(style?' ss:StyleID="'+style+'"':'')+'><Data ss:Type="String">'+xmlEsc(v)+'</Data></Cell>'}).join('')+'</Row>'});workbook+='</Table></Worksheet>'}
+  var usedSheets={};sheetName('Podsumowanie');sheetName('Wszyscy');
+  var filters=['Miesiąc: '+(month||'wszystkie'), 'Status: '+mode, 'Typ: '+(type||'wszystkie'), 'Pracownik: '+(employee||'wszyscy')];
+  addSheet('Podsumowanie',[['Clima Gold — Ewidencja pracy',hallName()],['Filtry',filters.join(' · ')],['Uwaga','Wpis jest ujęty, gdy jego zakres dat przecina wybrany miesiąc. Czas dotyczy całego wpisu.'],[],rowsSummary[0]].concat(rowsSummary.slice(1)),[190,105,150]);
+  addSheet('Wszyscy',[['Clima Gold — Ewidencja pracy',hallName()],['Miesiąc',month||'wszystkie'],allRows[0]].concat(allRows.slice(1)),[105,105,130,150,240,160,120,130,280]);
+  people.forEach(function(name){
+    var sheet=sheetName(name),rows=[['Data rozpoczęcia','Data zakończenia','Nr / oznaczenie','Typ centrali','Pracownik','System pracy','Czas przy pracy','Status','Uwagi']];
+    entries.forEach(function(e){(e.employees||[]).forEach(function(n,i){if(n!==name)return;var systems=[];employeeDays(e,n,i).forEach(function(d){if(d.system&&d.system!=='Wolne / brak pracy'&&systems.indexOf(d.system)<0)systems.push(d.system)});rows.push([e.start_date||'',e.end_date||'',e.number||'',entryDeviceLabel(e),n,systems.join(', ')||'—',fmt(effectiveMins(e,n,i)),entryStatusText(e),notesWithoutSection(e.notes||'')])})});
+    addSheet(sheet,[['Pracownik',name],['Miesiąc',month||'wszystkie'],['Uwaga','Czas dotyczy całego wpisu, który przecina wybrany miesiąc.'],[],rows[0]].concat(rows.slice(1)),[105,105,130,150,190,160,120,130,280])
+  });
+  workbook+='</Workbook>';
+  var fileMonth=month||'wszystkie';downloadBlob(new Blob([workbook],{type:'application/vnd.ms-excel;charset=utf-8'}),'ClimaGold_'+HALL+'_ewidencja_'+fileMonth+'.xls')
 }
 function opts(a,v){return'<option value=""></option>'+a.map(function(x){return'<option'+(x===v?' selected':'')+'>'+esc(x)+'</option>'}).join('')}
 function currentEmployeeSystems(){return[].slice.call(document.querySelectorAll('.empblock')).map(function(block){
