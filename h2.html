@@ -370,12 +370,14 @@ body{background:var(--softbg)}
 .dash-link{border:0;background:transparent;color:#5575a1;font-weight:700;cursor:pointer;font-size:12px}
 .dash-list{width:100%}
 .dash-list-scroll{max-height:500px;overflow:auto;overscroll-behavior:contain}
-.dash-entry-kpi{justify-content:center;cursor:default}
+.dash-entry-kpi{display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-rows:auto auto;align-content:center;gap:6px 10px;cursor:default}
 .dash-entry-kpi:hover{transform:none;border-color:#e4e8eb}
-.dash-entry-switch{display:flex;align-items:center;justify-content:center;gap:4px;padding:4px;background:#f1f3f5;border-radius:10px;width:100%}
-.dash-entry-toggle{border:0;background:transparent;color:#66717b;font-weight:700;font-size:12px;padding:8px 10px;border-radius:7px;cursor:pointer;white-space:nowrap}
+.dash-entry-kpi .dash-kpi-icon{grid-column:1;grid-row:1}
+.dash-entry-kpi .dash-kpi-copy{grid-column:2;grid-row:1}
+.dash-entry-switch{grid-column:1/-1;display:flex;align-items:center;justify-content:center;gap:4px;padding:4px;background:#f1f3f5;border-radius:10px;width:100%}
+.dash-entry-toggle{border:0;background:transparent;color:#66717b;font-weight:700;font-size:12px;padding:8px 10px;border-radius:7px;cursor:pointer;white-space:nowrap;flex:1}
 .dash-entry-toggle.active{background:#fff;color:#17212b;box-shadow:0 1px 4px #17212b1a}
-@media(max-width:560px){.dash-entry-switch{flex-direction:column;align-items:stretch}.dash-entry-toggle{white-space:normal;width:100%}}
+@media(max-width:560px){.dash-entry-toggle{font-size:11px;padding:7px 6px}}
 .dash-row{
   display:grid;
   grid-template-columns:minmax(120px,1fr) minmax(110px,1fr) minmax(180px,1.5fr) minmax(120px,1fr) auto;
@@ -1324,9 +1326,13 @@ th{background:#f6f8f9}
     </button>
 
     <div class="dash-kpi-card dash-entry-kpi">
+      <span class="dash-kpi-icon slate" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M4 3h16a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Zm1 5h14V6H5v2Zm0 5h14v-2H5v2Zm0 5h9v-2H5v2Z"/></svg>
+      </span>
+      <span class="dash-kpi-copy"><span class="dash-kpi-label" id="dkEntryLabel">DZISIEJSZE WPISY</span><strong id="dkEntryCount">0</strong></span>
       <div class="dash-entry-switch" role="group" aria-label="Zakres wpisów na dashboardzie">
-        <button type="button" class="dash-entry-toggle active" data-mode="today" onclick="setDashboardEntryMode('today')">Dzisiejsze wpisy</button>
-        <button type="button" class="dash-entry-toggle" data-mode="all" onclick="setDashboardEntryMode('all')">Wszystkie wpisy</button>
+        <button type="button" class="dash-entry-toggle active" data-mode="today" onclick="setDashboardEntryMode('today')">Dzisiaj</button>
+        <button type="button" class="dash-entry-toggle" data-mode="all" onclick="setDashboardEntryMode('all')">Wszystkie</button>
       </div>
     </div>
   </div>
@@ -2290,12 +2296,12 @@ function renderDashboardTest(){
   if($('dkOngoingTitle'))$('dkOngoingTitle').textContent='('+ongoing.length+')';
   if($('dkDoneToday'))$('dkDoneToday').textContent=doneToday.length;
   if($('dkWorkers'))$('dkWorkers').textContent=Object.keys(workers).length;
-  if($('dkAll'))$('dkAll').textContent=entries.length;
-
   var visible=entries.filter(function(e){return DASH_ENTRY_MODE==='all'||!e.end_date||e.start_date===today||e.end_date===today}).slice().sort(function(a,b){
     var aa=(a.start_date||'')+' '+(a.start_time||''),bb=(b.start_date||'')+' '+(b.start_time||'');
     return aa<bb?1:aa>bb?-1:Number(b.id||0)-Number(a.id||0)
   });
+  if($('dkEntryLabel'))$('dkEntryLabel').textContent=DASH_ENTRY_MODE==='all'?'WSZYSTKIE WPISY':'DZISIEJSZE WPISY';
+  if($('dkEntryCount'))$('dkEntryCount').textContent=visible.length;
   var head='<div class="dash-row head"><div>Nr centrali</div><div>Typ urządzenia</div><div>Pracownicy</div><div>Data / status</div><div>Akcja</div></div>';
   if($('dashEntryList')){
     $('dashEntryList').innerHTML=visible.length?head+visible.map(function(e){
