@@ -369,6 +369,10 @@ body{background:var(--softbg)}
 .status-dot.done::after{border:0;width:11px;height:6px;inset:8px 0 0 8px;border-left:3px solid #fff;border-bottom:3px solid #fff;transform:rotate(-45deg)}
 .dash-link{border:0;background:transparent;color:#5575a1;font-weight:700;cursor:pointer;font-size:12px}
 .dash-list{width:100%}
+.dash-list-scroll{max-height:500px;overflow:auto;overscroll-behavior:contain}
+.dash-entry-switch{display:flex;align-items:center;gap:4px;padding:4px;background:#f1f3f5;border-radius:10px}
+.dash-entry-toggle{border:0;background:transparent;color:#66717b;font-weight:700;font-size:12px;padding:8px 11px;border-radius:7px;cursor:pointer}
+.dash-entry-toggle.active{background:#fff;color:#17212b;box-shadow:0 1px 4px #17212b1a}
 .dash-row{
   display:grid;
   grid-template-columns:minmax(120px,1fr) minmax(110px,1fr) minmax(180px,1.5fr) minmax(120px,1fr) auto;
@@ -1326,18 +1330,13 @@ th{background:#f6f8f9}
 
   <div class="dash-panel">
     <div class="dash-panel-head">
-      <div><span class="status-dot ongoing"></span><h3>Centrale w toku <span id="dkOngoingTitle">(0)</span></h3></div>
-      <button class="dash-link" onclick="dashboardShowOngoing()">Pokaż wszystkie →</button>
+      <h3>Wpisy</h3>
+      <div class="dash-entry-switch" role="group" aria-label="Zakres wpisów">
+        <button type="button" class="dash-entry-toggle active" data-mode="today" onclick="setDashboardEntryMode('today')">Dzisiejsze wpisy</button>
+        <button type="button" class="dash-entry-toggle" data-mode="all" onclick="setDashboardEntryMode('all')">Wszystkie wpisy</button>
+      </div>
     </div>
-    <div id="dashOngoingList" class="dash-list"></div>
-  </div>
-
-  <div class="dash-panel">
-    <div class="dash-panel-head">
-      <div><span class="status-dot done"></span><h3>Ostatnio zakończone</h3></div>
-      <button class="dash-link" onclick="dashboardShowAll()">Ewidencja →</button>
-    </div>
-    <div id="dashRecentDone" class="dash-list"></div>
+    <div id="dashEntryList" class="dash-list dash-list-scroll"></div>
   </div>
 </section>
 
@@ -2270,6 +2269,12 @@ async function saveDailyExceptions(){
   }finally{save.disabled=false}
 }
 
+var DASH_ENTRY_MODE='today';
+function setDashboardEntryMode(mode){
+  DASH_ENTRY_MODE=mode==='all'?'all':'today';
+  document.querySelectorAll('.dash-entry-toggle').forEach(function(btn){btn.classList.toggle('active',btn.dataset.mode===DASH_ENTRY_MODE)});
+  renderDashboardTest()
+}
 function renderDashboardTest(){
   var entries=D.entries||[],today=localDate(new Date());
   var ongoing=entries.filter(function(e){return !e.end_date&&!entryIsStopped(e)});
@@ -2288,31 +2293,23 @@ function renderDashboardTest(){
   if($('dkWorkers'))$('dkWorkers').textContent=Object.keys(workers).length;
   if($('dkAll'))$('dkAll').textContent=entries.length;
 
-  var headOngoing='<div class="dash-row head"><div>Nr centrali</div><div>Typ urządzenia</div><div>Pracownicy</div><div>Od rozpoczęcia</div><div>Akcja</div></div>';
-  var headDone='<div class="dash-row head"><div>Nr centrali</div><div>Typ urządzenia</div><div>Pracownicy</div><div>Czas pracy</div><div>Akcja</div></div>';
-  if($('dashOngoingList')){
-    $('dashOngoingList').innerHTML=ongoing.length?headOngoing+ongoing.map(function(e){
+  var visible=entries.filter(function(e){return DASH_ENTRY_MODE==='all'||!e.end_date||e.start_date===today||e.end_date===today}).slice().sort(function(a,b){
+    var aa=(a.start_date||'')+' '+(a.start_time||''),bb=(b.start_date||'')+' '+(b.start_time||'');
+    return aa<bb?1:aa>bb?-1:Number(b.id||0)-Number(a.id||0)
+  });
+  var head='<div class="dash-row head"><div>Nr centrali</div><div>Typ urządzenia</div><div>Pracownicy</div><div>Data / status</div><div>Akcja</div></div>';
+  if($('dashEntryList')){
+    $('dashEntryList').innerHTML=visible.length?head+visible.map(function(e){
+      var dateText=(e.start_date||'')+' '+(e.start_time||'');
+      var status=entryStatusText(e),time=e.end_date?timeSummary(e):(entryIsStopped(e)?'':dashElapsed(e));
       return'<div class="dash-row">'+
-        '<div class="dash-cell"><b>'+esc(e.number||'Bez numeru')+'</b><small>'+esc(e.start_date||'')+' '+esc(e.start_time||'')+'</small></div>'+
+        '<div class="dash-cell"><b>'+esc(e.number||'Bez numeru')+'</b><small>'+esc(dateText)+'</small></div>'+
         '<div class="dash-cell">'+esc(entryDeviceLabel(e)||'—')+'</div>'+
         '<div class="dash-cell">'+esc((e.employees||[]).join(', ')||'—')+'</div>'+
-        '<div class="dash-cell"><b>'+dashElapsed(e)+'</b></div>'+
+        '<div class="dash-cell"><b>'+esc(status)+'</b><small>'+esc(time)+'</small></div>'+
         '<button class="dash-open" onclick="openEntry('+e.id+')">Otwórz</button>'+
       '</div>'
-    }).join(''):'<div class="dash-empty">Brak central w toku.</div>'
-  }
-
-  var done=entries.filter(function(e){return !!e.end_date}).slice(0,6);
-  if($('dashRecentDone')){
-    $('dashRecentDone').innerHTML=done.length?headDone+done.map(function(e){
-      return'<div class="dash-row">'+
-        '<div class="dash-cell"><b>'+esc(e.number||'Bez numeru')+'</b><small>'+esc(e.end_date||'')+' '+esc(e.end_time||'')+'</small></div>'+
-        '<div class="dash-cell">'+esc(entryDeviceLabel(e)||'—')+'</div>'+
-        '<div class="dash-cell">'+esc((e.employees||[]).join(', ')||'—')+'</div>'+
-        '<div class="dash-cell"><b>'+esc(timeSummary(e))+'</b></div>'+
-        '<button class="dash-open" onclick="openEntry('+e.id+')">Otwórz</button>'+
-      '</div>'
-    }).join(''):'<div class="dash-empty">Brak zakończonych wpisów.</div>'
+    }).join(''):'<div class="dash-empty">'+(DASH_ENTRY_MODE==='today'?'Brak dzisiejszych wpisów.':'Brak wpisów.')+'</div>'
   }
 }
 
