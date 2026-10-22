@@ -2715,7 +2715,36 @@ function openEntry(id){
 }
 function quickNowParts(){var d=new Date();return{date:localDate(d),time:String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')}}
 function quickStartWork(){var n=quickNowParts();$('sd').value=n.date;$('stt').value=n.time;if(!$('ed').value)$('ed').value='';if(!$('ett').value)$('ett').value='';refreshEmpDays()}
-function quickEndWork(){var n=quickNowParts();if(!$('sd').value)$('sd').value=n.date;if(!$('stt').value)$('stt').value=n.time;$('ed').value=n.date;$('ett').value=n.time;refreshEmpDays()}
+function finishPausedEmployeesAtPause(){
+  var plans=[],error='';
+  document.querySelectorAll('.empblock').forEach(function(block){
+    if(error)return;
+    var emp=block.querySelector('.emp').value;
+    if(!emp)return;
+    var endDate=block.querySelector('.ptod').value,endTime=block.querySelector('.ptot').value;
+    if(endDate||endTime)return;
+    var pauses=collectPauses(block),i;
+    for(i=pauses.length-1;i>=0;i--)if(pauses[i].from_date&&pauses[i].from_time&&!(pauses[i].to_date&&pauses[i].to_time))break;
+    if(i<0)return;
+    var p=pauses[i],finish=p.from_date+'T'+p.from_time;
+    var startDate=$('sd').value,startTime=$('stt').value;
+    if(startDate&&startTime&&finish<startDate+'T'+startTime){error='Wstrzymanie '+emp+' jest wcześniejsze niż rozpoczęcie pracy przy centrali. Popraw godzinę wstrzymania.';return}
+    var fromDate=block.querySelector('.pfromd').value,fromTime=block.querySelector('.pfromt').value;
+    if(fromDate&&fromTime&&finish<fromDate+'T'+fromTime){error='Wstrzymanie '+emp+' jest wcześniejsze niż dołączenie do pracy. Popraw godzinę wstrzymania.';return}
+    plans.push({block:block,pauses:pauses,index:i,p:p})
+  });
+  if(error){alert(error);return false}
+  plans.forEach(function(x){
+    x.block.querySelector('.ptod').value=x.p.from_date;
+    x.block.querySelector('.ptot').value=x.p.from_time;
+    x.block.querySelector('.topart').classList.add('open');
+    x.pauses.splice(x.index,1);
+    renderPauseControls(x.block,x.pauses);
+    participationChanged(x.block)
+  });
+  return true
+}
+function quickEndWork(){if(!finishPausedEmployeesAtPause())return;var n=quickNowParts();if(!$('sd').value)$('sd').value=n.date;if(!$('stt').value)$('stt').value=n.time;$('ed').value=n.date;$('ett').value=n.time;refreshEmpDays()}
 function closeEntry(){$('modal').classList.remove('open')}
 var assignmentSavePending=false;
 function chooseAssignmentAction(conflict){
@@ -2749,7 +2778,7 @@ async function saveEntryWithAssignments(entry){
  }
 }
 
-async function saveEntry(){var employees=[],corrections=[],employee_systems=[];document.querySelectorAll('.empblock').forEach(function(block){var emp=block.querySelector('.emp').value;if(!emp)return;var group=(block.querySelector('.breakgroup')||{}).value||'A';employees.push(emp);corrections.push(+block.querySelector('.corr').value||0);employee_systems.push({employee:emp,break_group:group,days:[].slice.call(block.querySelectorAll('.empdayrow')).map(function(r){return{date:r.dataset.date,system:r.querySelector('select').value,breaks:dayBreakSnapshot(r,group)}}),work_from_date:block.querySelector('.pfromd').value,work_from_time:block.querySelector('.pfromt').value,work_to_date:block.querySelector('.ptod').value,work_to_time:block.querySelector('.ptot').value,pauses:collectPauses(block)})});var section=(isMontazHall()&&isSplitDeviceType($('dt').value))?$('section').value:'';if(isMontazHall()&&isSplitDeviceType($('dt').value)&&!section){alert('Wybierz sekcję centrali dzielonej.');return}var x={id:$('eid').value?+$('eid').value:undefined,start_date:$('sd').value,end_date:$('ed').value,device_type:$('dt').value,number:$('no').value,start_time:$('stt').value,end_time:$('ett').value,day_systems:employee_systems[0]?employee_systems[0].days:[],employee_systems:employee_systems,employees:employees,corrections:corrections,notes:notesWithSection($('notes').value,section),mark_color:$('markcolor').value,additional_employees:employees.filter(function(n){return extraWorkers().indexOf(n)>=0||(D.entries||[]).some(function(old){return +old.id===+($('eid').value||0)&&entryExtraNames(old).indexOf(n)>=0})})};if(!x.start_date||!x.start_time){alert('Uzupełnij datę i godzinę rozpoczęcia');return}if((x.end_date&&!x.end_time)||(!x.end_date&&x.end_time)){alert('Uzupełnij jednocześnie datę i godzinę zakończenia');return}if(x.end_date&&x.end_date<x.start_date){alert('Błędna data zakończenia');return}if(HALL==='AUTO'&&x.employees.filter(function(n){return extraWorkers().indexOf(n)<0}).length>1){alert('Automatycy: tylko jeden stały pracownik; można dodać pomoc serwisu.');return}try{var saved=await saveEntryWithAssignments(x);if(!saved)return}catch(e){alert(e.message||'Nie udało się zapisać wpisu.');return}D=await api('/api/data');closeEntry();renderAll()}
+async function saveEntry(){if($('ed').value&&$('ett').value&&!finishPausedEmployeesAtPause())return;var employees=[],corrections=[],employee_systems=[];document.querySelectorAll('.empblock').forEach(function(block){var emp=block.querySelector('.emp').value;if(!emp)return;var group=(block.querySelector('.breakgroup')||{}).value||'A';employees.push(emp);corrections.push(+block.querySelector('.corr').value||0);employee_systems.push({employee:emp,break_group:group,days:[].slice.call(block.querySelectorAll('.empdayrow')).map(function(r){return{date:r.dataset.date,system:r.querySelector('select').value,breaks:dayBreakSnapshot(r,group)}}),work_from_date:block.querySelector('.pfromd').value,work_from_time:block.querySelector('.pfromt').value,work_to_date:block.querySelector('.ptod').value,work_to_time:block.querySelector('.ptot').value,pauses:collectPauses(block)})});var section=(isMontazHall()&&isSplitDeviceType($('dt').value))?$('section').value:'';if(isMontazHall()&&isSplitDeviceType($('dt').value)&&!section){alert('Wybierz sekcję centrali dzielonej.');return}var x={id:$('eid').value?+$('eid').value:undefined,start_date:$('sd').value,end_date:$('ed').value,device_type:$('dt').value,number:$('no').value,start_time:$('stt').value,end_time:$('ett').value,day_systems:employee_systems[0]?employee_systems[0].days:[],employee_systems:employee_systems,employees:employees,corrections:corrections,notes:notesWithSection($('notes').value,section),mark_color:$('markcolor').value,additional_employees:employees.filter(function(n){return extraWorkers().indexOf(n)>=0||(D.entries||[]).some(function(old){return +old.id===+($('eid').value||0)&&entryExtraNames(old).indexOf(n)>=0})})};if(!x.start_date||!x.start_time){alert('Uzupełnij datę i godzinę rozpoczęcia');return}if((x.end_date&&!x.end_time)||(!x.end_date&&x.end_time)){alert('Uzupełnij jednocześnie datę i godzinę zakończenia');return}if(x.end_date&&x.end_date<x.start_date){alert('Błędna data zakończenia');return}if(HALL==='AUTO'&&x.employees.filter(function(n){return extraWorkers().indexOf(n)<0}).length>1){alert('Automatycy: tylko jeden stały pracownik; można dodać pomoc serwisu.');return}try{var saved=await saveEntryWithAssignments(x);if(!saved)return}catch(e){alert(e.message||'Nie udało się zapisać wpisu.');return}D=await api('/api/data');closeEntry();renderAll()}
 async function delEntry(id){
   var old=(D.entries||[]).find(function(e){return +e.id===+id});
   if(!confirm('Usunąć wpis centrali '+(old&&old.number||'')+'? Będzie można go przywrócić przyciskiem „Cofnij usunięcie”.'))return;
