@@ -2151,10 +2151,12 @@ async function saveTodaySystem(system){
 
 function dailyExceptionsDate(){var el=$('dailyExceptionsDate');if(el&&!el.value)el.value=localDate(new Date());return el?el.value:localDate(new Date())}
 var workPlanDirty=false;
-function workPlanDate(){var el=$('workPlanDate');if(!el.value)el.value=localDate(new Date());return el.value}
+function workPlanDate(){var el=$('workPlanDate');if(!el.value){el.value=localDate(new Date());el.dataset.autoToday='1'}return el.value}
 function workPlanOptions(choice,base){return '<option value="">Według działu'+(base?' — '+esc(base):'')+'</option>'+['Wolne / brak pracy'].concat(D.settings.systems||[]).map(function(s){return '<option value="'+esc(s)+'"'+(s===choice?' selected':'')+'>'+esc(s==='Wolne / brak pracy'?'Wolne / nieobecny':s)+'</option>'}).join('')+'<option value="__custom__"'+(choice==='__custom__'?' selected':'')+'>Inny — własne godziny</option>'}
 function renderWorkPlan(force){
  if(!$('workPlanRows')||!D||workPlanDirty&&!force)return;
+ var dateInput=$('workPlanDate'),today=localDate(new Date());
+ if(dateInput&&dateInput.dataset.autoToday==='1'&&dateInput.value!==today&&!workPlanDirty){dateInput.value=today;force=true}
  var date=workPlanDate();$('workPlanDate').dataset.previous=date;var base=configuredSystemForDate(date),over=employeeDailyOverrides()[date]||{},readonly=!ME||ME.role==='viewer',extras=extraWorkers();
  $('workPlanSystem').innerHTML='<option value="">Wybierz system dla stałych pracowników</option>'+(D.settings.systems||[]).map(function(s){return '<option value="'+esc(s)+'"'+(s===base?' selected':'')+'>'+esc(s)+'</option>'}).join('');
  function row(name,extra){var value=over[name]||(extra?'Wolne / brak pracy':''),custom=value&&value!=='Wolne / brak pracy'&&(D.settings.systems||[]).indexOf(value)<0,parts=exceptionTimeParts(custom?value:base),options=workPlanOptions(custom?'__custom__':value,base);if(extra)options=options.slice(options.indexOf('</option>')+9).replace('Wolne / nieobecny','Nie pracuje');return '<tr data-employee="'+esc(name)+'" data-extra="'+(extra?'1':'0')+'"><td><b>'+esc(name)+'</b></td><td><select class="plan-choice" aria-label="System pracy: '+esc(name)+'" onchange="workPlanChanged(this)">'+options+'</select><div class="plan-custom"'+(custom?'':' hidden')+'><label>Od <input type="time" class="plan-from" value="'+esc(parts[0])+'"></label><label>Do <input type="time" class="plan-to" value="'+esc(parts[1])+'"></label></div></td></tr>'}
@@ -2166,7 +2168,7 @@ function renderWorkPlan(force){
 }
 function workPlanChanged(sel){if(sel){var row=sel.closest('tr');row.querySelector('.plan-custom').hidden=sel.value!=='__custom__'}workPlanDirty=true;$('workPlanStatus').textContent='Masz niezapisane zmiany.'}
 function workPlanBaseChanged(){var base=$('workPlanSystem').value;$('workPlanRows').querySelectorAll('tr[data-extra="0"] .plan-choice').forEach(function(sel){sel.options[0].textContent='Według działu'+(base?' — '+base:'')});workPlanChanged()}
-function workPlanDateChanged(){if(workPlanDirty&&!confirm('Zmienić datę i odrzucić niezapisane zmiany planu?')){$('workPlanDate').value=$('workPlanDate').dataset.previous;return}workPlanDirty=false;renderWorkPlan(true);$('workPlanDate').dataset.previous=workPlanDate()}
+function workPlanDateChanged(){if(workPlanDirty&&!confirm('Zmienić datę i odrzucić niezapisane zmiany planu?')){$('workPlanDate').value=$('workPlanDate').dataset.previous;return}workPlanDirty=false;var el=$('workPlanDate');el.dataset.autoToday=el.value===localDate(new Date())?'1':'0';renderWorkPlan(true);$('workPlanDate').dataset.previous=workPlanDate()}
 async function saveWorkPlan(){
  if(!ME||ME.role==='viewer')return;
  var date=workPlanDate(),system=$('workPlanSystem').value,map={},ok=true;
@@ -3070,7 +3072,9 @@ var refreshing=false;async function refreshData(force){
     if(force&&b&&b.textContent==='Odświeżanie…'){b.textContent=oldText;b.disabled=false}
   }
 }
-setInterval(function(){if(!document.hidden)refreshData(false)},30000);
-document.addEventListener('visibilitychange',function(){if(!document.hidden)refreshData(false)});sessionStorage.removeItem(TOKEN_KEY);$('login').style.display='grid';$('app').style.display='none';
+var workPlanDayCheck=localDate(new Date());
+function checkWorkPlanDay(){if(!ME)return;var today=localDate(new Date());if(today===workPlanDayCheck)return;workPlanDayCheck=today;renderTodaySystemPicker();if(DASH_ENTRY_MODE==='today')renderDashboardTest();var el=$('workPlanDate');if(el&&el.dataset.autoToday==='1'&&!workPlanDirty){el.value=today;renderWorkPlan(true)}}
+setInterval(function(){if(!document.hidden){checkWorkPlanDay();refreshData(false)}},30000);
+document.addEventListener('visibilitychange',function(){if(!document.hidden){checkWorkPlanDay();refreshData(false)}});sessionStorage.removeItem(TOKEN_KEY);$('login').style.display='grid';$('app').style.display='none';
 
 </script></body></html>
