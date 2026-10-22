@@ -1255,19 +1255,14 @@ th{background:#f6f8f9}
 @media(max-width:500px){.daily-exception-row select{flex:1 1 100%}.daily-exception-row .btn{margin-left:auto}}
  .plan-toolbar label{display:grid;gap:6px}.plan-toolbar input,.plan-toolbar select,#workPlanRows select{padding:10px;border:1px solid var(--line);border-radius:9px;background:white;max-width:100%}.plan-custom{display:flex;gap:10px;margin-top:8px}.plan-custom[hidden]{display:none}.plan-custom label{display:grid;gap:5px}.plan-custom input{width:110px;padding:8px}#workPlanRows td{padding:12px}#workPlanRows select{width:100%}@media(max-width:600px){.plan-toolbar{align-items:stretch}.plan-toolbar label,.plan-toolbar button{width:100%}#workPlanRows td{padding:8px}#workPlanRows td:first-child{max-width:140px;white-space:normal}.plan-custom{flex-wrap:wrap}}
 .assignment-warning{position:fixed;inset:0;background:#101820aa;z-index:10000;display:grid;place-items:center;padding:16px}.assignment-warning-box{background:#fff;color:#17212b;border-radius:14px;padding:22px;width:min(100%,480px);box-shadow:0 18px 60px #0005}.assignment-warning-box h2{font-size:20px;margin:0 0 12px}.assignment-warning-box p{line-height:1.45}.assignment-warning-box .btn{display:block;width:100%;margin-top:9px}
-</style><style>.entry-search-row{display:flex;justify-content:flex-end;width:100%;margin:0 0 12px}.entry-search-row #search{display:block;width:min(100%,320px);min-width:0;padding:10px;border:1px solid var(--line);border-radius:9px;background:#fff;margin-left:0}@media(max-width:800px){#entries .entry-search-row #search{width:100%;max-width:100%}}</style><style>
-#entries .entry-toolbar{display:grid;grid-template-columns:minmax(0,1fr) minmax(240px,320px);align-items:start;gap:8px;margin:12px 0}
-#entries .entry-actions,#entries .entry-filters{display:flex;flex-wrap:wrap;align-items:center;gap:8px;min-width:0}
-#entries .entry-actions{grid-column:1;grid-row:1}
-#entries .entry-search-row{grid-column:2;grid-row:1;display:flex;justify-content:flex-end;width:100%;margin:0;min-width:0}
-#entries .entry-search-row #search{display:block;width:100%;max-width:320px;min-width:0;padding:10px;border:1px solid var(--line);border-radius:9px;background:#fff;margin:0}
-#entries .entry-filters{grid-column:1 / -1;grid-row:2}
+</style><style>
+#entries .entry-toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:12px 0}
+#entries .entry-actions,#entries .entry-filters{display:contents}
+#entries .entry-search-row{display:flex;flex:0 1 320px;justify-content:flex-end;width:auto;min-width:240px;margin:0 0 0 auto}
+#entries .entry-search-row #search{display:block;flex:1 1 auto;width:100%;max-width:320px;min-width:0;padding:10px;border:1px solid var(--line);border-radius:9px;background:#fff;margin:0}
 @media(max-width:800px){
-  #entries .entry-toolbar{grid-template-columns:minmax(0,1fr);gap:8px}
-  #entries .entry-actions{grid-column:1;grid-row:1}
-  #entries .entry-search-row{grid-column:1;grid-row:2}
+  #entries .entry-search-row{flex:1 1 100%;min-width:0;margin:0}
   #entries .entry-search-row #search{max-width:100%}
-  #entries .entry-filters{grid-column:1;grid-row:3}
 }
 </style></head><body>
 <div id="login" class="login"><div class="box"><button type="button" class="btn secondary" onclick="location.href='./index.html'" style="width:100%;margin:0 0 14px">← Wróć do wyboru działu</button><div class="brand"><span class="brandmark" aria-hidden="true"><i></i><i></i><i></i></span><span class="brandtext"><span class="clima">Clima</span><span class="gold">Gold</span></span></div><h2>Montaż H1</h2><div class="hint">Wspólna baza online</div><div class="field"><label>Login</label><input id="lu" value="brygadzista" autocomplete="username"></div><div class="field"><label>Hasło</label><input id="lp" type="password" autocomplete="current-password"></div><button class="btn" onclick="doLogin()">Zaloguj</button><div id="le" class="error"></div></div></div>
