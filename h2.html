@@ -2943,11 +2943,11 @@ function exportStatsCSV(){
 }
 function xmlEsc(v){return String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
 function exportStatsXLS(){
-  var d=exportFullStatsData(),r='<?xml version="1.0"?><Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet" xmlns:x="urn:schemas-microsoft-com:office:excel"><Styles><Style ss:ID="Wrap"><Alignment ss:Vertical="Top" ss:WrapText="1"/></Style></Styles>';
+  var d=exportFullStatsData(),r='<?xml version="1.0"?><Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet" xmlns:x="urn:schemas-microsoft-com:office:excel"><Styles><Style ss:ID="Title"><Font ss:Bold="1" ss:Size="14"/></Style><Style ss:ID="Header"><Font ss:Bold="1" ss:Size="8" ss:Color="#FFFFFF"/><Interior ss:Color="#1D2832" ss:Pattern="Solid"/></Style><Style ss:ID="Wrap"><Alignment ss:Vertical="Top" ss:WrapText="1"/></Style></Styles>';
   function sheet(name,rows,widths){
     r+='<Worksheet ss:Name="'+xmlEsc(name)+'"><Table>';
     (widths||[]).forEach(function(w){r+='<Column ss:AutoFitWidth="0" ss:Width="'+w+'"/>'});
-    rows.forEach(function(a){r+='<Row ss:AutoFitHeight="1">'+a.map(function(v){return'<Cell ss:StyleID="Wrap"><Data ss:Type="String">'+xmlEsc(v)+'</Data></Cell>'}).join('')+'</Row>'});
+    rows.forEach(function(a,i){var st=name==='Szczegóły'&&i===0?'Title':name==='Szczegóły'&&i===3?'Header':'Wrap',height=name==='Szczegóły'&&i>3?' ss:Height="72"':'';r+='<Row'+height+'>'+a.map(function(v){return'<Cell ss:StyleID="'+st+'"><Data ss:Type="String">'+xmlEsc(v)+'</Data></Cell>'}).join('')+'</Row>'});
     r+='</Table><WorksheetOptions xmlns="urn:schemas-microsoft-com:office:excel"><PageSetup><Layout x:Orientation="Portrait"/></PageSetup><FitToPage/><Print><ValidPrinterInfo/><PaperSizeIndex>9</PaperSizeIndex></Print></WorksheetOptions></Worksheet>'
   }
   var qtyMap={};rankQuantityRows(d.rows).forEach(function(x){qtyMap[x.name]=x.qtyPlace});
@@ -2955,9 +2955,9 @@ function exportStatsXLS(){
   d.rows.forEach(function(x){var metrics=[['Miejsce czasu',x.place||'—'],['Miejsce ilości',qtyMap[x.name]||'—'],['Wszystkie prace',x.count],['Pełne prace',x.full],['Udziały',x.partial],['Dołączył później',x.joined],['Zakończył wcześniej',x.left],['Czas łącznie',fmt(x.minutes)],['Czas pełnych prac',fmt(x.fullMinutes)],['Czas udziałów',fmt(x.partialMinutes)],['Średnia pełnej pracy',x.full?fmt(x.avgFull):'—']];metrics.forEach(function(m){sum.push([x.name,m[0],m[1]])})});
   var typ=[['Pracownik','Typ centrali','Wskaźnik','Wartość']];
   d.rows.forEach(function(x){d.types.forEach(function(t){var y=x.byType[t]||{count:0,minutes:0,full:0,fullMinutes:0,partial:0},metrics=[['Wszystkie prace',y.count],['Pełne prace',y.full],['Udziały',y.partial],['Czas łącznie',fmt(y.minutes)],['Czas pełnych',fmt(y.fullMinutes)],['Średnia pełnej',y.full?fmt((y.rankMinutes||0)/y.full):'—']];metrics.forEach(function(m){typ.push([x.name,t,m[0],m[1]])})})});
-  var det=[['Informacja','Wartość']];
-  d.details.forEach(function(x){var items=[['Data',x.start===x.end?x.start:(x.start+' – '+x.end)],['Nr / centrala',x.number],['Typ urządzenia',x.type],['Sekcja',x.section||'—'],['Pracownik',x.employee],['System pracy',x.system],['Udział od',x.from],['Udział do',x.to],['Status',x.status],['Rodzaj pracy',x.classification],['Czas',fmt(x.minutes)],['Korekta historyczna (h)',x.correction]];if(x.notes)items.push(['Uwagi',x.notes]);items.forEach(function(item){det.push(item)})});
-  sheet('Podsumowanie',sum,[95,130,70]);sheet('Typy central',typ,[90,90,110,80]);sheet('Szczegóły',det,[145,250]);
+  var det=[['Clima Gold — Szczegóły pracy · '+hallName()],['Miesiąc',d.month||'wszystkie'],[],['Data','Nr','Typ/sekcja','Pracownik','System/status','Czas','Uwagi']];
+  d.details.forEach(function(x){var notes=[];if(x.from||x.to)notes.push('Udział: '+x.from+' – '+x.to);if(x.correction)notes.push('Korekta: '+x.correction+' h');if(x.notes)notes.push(x.notes);det.push([x.start===x.end?x.start:(x.start+' → '+x.end),x.number,[x.type,x.section].filter(Boolean).join(' / '),x.employee,[x.system,x.status,x.classification].filter(Boolean).join(' / '),fmt(x.minutes),notes.join(' · ')])});
+  sheet('Podsumowanie',sum,[95,130,70]);sheet('Typy central',typ,[90,90,110,80]);sheet('Szczegóły',det,[55,40,65,75,80,40,65]);
   r+='</Workbook>';downloadBlob(new Blob([r],{type:'application/vnd.ms-excel;charset=utf-8'}),'ClimaGold_'+HALL+'_statystyki_PELNE_UDZIALY_'+(d.month||'wszystkie')+'.xls')
 }
 function scoreRating(r){var a=[r.knowledge,r.efficiency,r.accuracy,r.quality];if(a.some(function(v){return!v||v==='-'}))return null;return a.reduce(function(s,v){return s+(parseInt(v)||0)},0)}
