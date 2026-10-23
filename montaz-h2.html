@@ -2782,7 +2782,7 @@ function chooseAssignmentAction(conflict){
  return new Promise(function(resolve){
   var backdrop=document.createElement('div');backdrop.className='assignment-warning';backdrop.setAttribute('role','dialog');backdrop.setAttribute('aria-modal','true');backdrop.setAttribute('aria-label','Pracownik przy innej centrali');
   var box=document.createElement('div');box.className='assignment-warning-box';var title=document.createElement('h2');title.textContent='Pracownik pracuje już przy innej centrali';box.appendChild(title);
-  var info=document.createElement('p');info.textContent=conflict.employee+' — centrala nr '+conflict.number+'.';box.appendChild(info);var detail=document.createElement('p');detail.textContent='Wybierz, co zrobić z poprzednią pracą od '+conflict.at.replace('T',' ')+'. Pozostałe osoby pracują dalej.';box.appendChild(detail);
+  var info=document.createElement('p');info.textContent=conflict.employee+' — centrala nr '+conflict.number+'.';box.appendChild(info);var detail=document.createElement('p');detail.textContent='Wybierz, co zrobić z poprzednią pracą od '+conflict.at.replace('T',' ')+'. Jeśli kończy ostatnia osoba, centrala zamknie się automatycznie.';box.appendChild(detail);
   var buttons=[];function done(action){document.removeEventListener('keydown',onKey);backdrop.remove();resolve(action)}
   function onKey(e){if(e.key==='Escape'){e.preventDefault();e.stopImmediatePropagation();done(null)}if(e.key==='Tab'){var i=buttons.indexOf(document.activeElement);if(e.shiftKey&&i<=0){e.preventDefault();buttons[buttons.length-1].focus()}else if(!e.shiftKey&&i===buttons.length-1){e.preventDefault();buttons[0].focus()}}}
   [['Wstrzymaj poprzednią pracę','pause'],['Zakończ udział pracownika','finish'],['Anuluj',null]].forEach(function(choice){var btn=document.createElement('button');btn.type='button';btn.className='btn'+(choice[1]?'':' secondary');btn.textContent=choice[0];btn.onclick=function(){done(choice[1])};box.appendChild(btn);buttons.push(btn)});
@@ -3186,7 +3186,7 @@ var refreshing=false;async function refreshData(force){
   }
 }
 var workPlanDayCheck=localDate(new Date());
-function checkWorkPlanDay(){if(!ME)return;var today=localDate(new Date());if(today===workPlanDayCheck)return;workPlanDayCheck=today;renderTodaySystemPicker();if(DASH_ENTRY_MODE==='today')renderDashboardTest();var el=$('workPlanDate');if(el&&el.dataset.autoToday==='1'&&!workPlanDirty){el.value=today;renderWorkPlan(true)}}
+function checkWorkPlanDay(){if(!ME)return;var today=localDate(new Date());if(today===workPlanDayCheck)return;var previousDay=workPlanDayCheck;workPlanDayCheck=today;renderTodaySystemPicker();if(DASH_ENTRY_MODE==='today')renderDashboardTest();var el=$('workPlanDate');if(el&&!workPlanDirty&&(el.dataset.autoToday==='1'||el.value===previousDay)){el.value=today;el.dataset.autoToday='1';renderWorkPlan(true)}}
 setInterval(function(){if(!document.hidden){checkWorkPlanDay();refreshData(false)}},30000);
 document.addEventListener('visibilitychange',function(){if(!document.hidden){checkWorkPlanDay();refreshData(false)}});sessionStorage.removeItem(TOKEN_KEY);$('login').style.display='grid';$('app').style.display='none';
 
