@@ -83,7 +83,46 @@ function cgAssignmentStart(entry:any,row:any){const a=cgAssignmentStamp(entry.st
 function cgAssignmentEnd(entry:any,row:any){const a=cgAssignmentStamp(entry.end_date,entry.end_time),b=cgAssignmentStamp(row.work_to_date,row.work_to_time);return a&&b?(a<b?a:b):a||b}
 function cgAssignmentActive(entry:any,name:string,at:string){if((entry.employees||[]).indexOf(name)<0)return false;const row=cgAssignmentRow(entry,name),start=cgAssignmentStart(entry,row),end=cgAssignmentEnd(entry,row);if(!start||at<start||(end&&at>=end))return false;return !(row.pauses||[]).some((p:any)=>{const a=cgAssignmentStamp(p.from_date,p.from_time),b=cgAssignmentStamp(p.to_date,p.to_time);return a&&at>=a&&(!b||at<b)})}
 function cgAssignmentConflicts(entries:any[],incoming:any){const previous=entries.find((e:any)=>Number(e.id)===Number(incoming.id)),events:any[]=[];(incoming.employees||[]).forEach((name:string)=>{const row=cgAssignmentRow(incoming,name),old=previous&&cgAssignmentRow(previous,name),start=cgAssignmentStart(incoming,row),end=cgAssignmentEnd(incoming,row);if(!previous||(previous.employees||[]).indexOf(name)<0||start!==cgAssignmentStart(previous,old))events.push({employee:name,at:start});(row.pauses||[]).forEach((p:any)=>{const at=cgAssignmentStamp(p.to_date,p.to_time);if(!at||at<start||(end&&at>=end))return;const unchanged=old&&(old.pauses||[]).some((q:any)=>q.from_date===p.from_date&&q.from_time===p.from_time&&q.to_date===p.to_date&&q.to_time===p.to_time);if(!unchanged)events.push({employee:name,at})})});const conflicts:any[]=[];events.filter((e,i)=>e.at&&cgAssignmentActive(incoming,e.employee,e.at)&&events.findIndex(q=>q.employee===e.employee&&q.at===e.at)===i).forEach(event=>entries.forEach(old=>{if(Number(old.id)===Number(incoming.id)||!cgAssignmentActive(old,event.employee,event.at))return;const row=cgAssignmentRow(old,event.employee);conflicts.push({key:String(old.id)+'|'+event.employee+'|'+event.at,entry_id:old.id,number:old.number||'bez numeru',employee:event.employee,at:event.at,signature:JSON.stringify([old.start_date,old.start_time,old.end_date,old.end_time,row])})}));return conflicts}
-function cgResolveAssignments(state:any,incoming:any,resolutions:any[]){const names=incoming.employees||[];if(new Set(names).size!==names.length)throw Object.assign(new Error('Ten sam pracownik został wybrany więcej niż raz.'),{status:400});const conflicts=cgAssignmentConflicts(state.entries||[],incoming),missing=conflicts.filter(c=>{const r=resolutions.find((x:any)=>x.key===c.key&&x.signature===c.signature);return !r||!['pause','finish'].includes(r.action)});if(missing.length)throw Object.assign(new Error('Pracownik pracuje już przy innej centrali.'),{status:409,code:'EMPLOYEE_BUSY',conflicts:missing});conflicts.forEach(c=>{const decision=resolutions.find((r:any)=>r.key===c.key&&r.signature===c.signature),entry=state.entries.find((e:any)=>Number(e.id)===Number(c.entry_id)),parts=c.at.split('T');let row=cgAssignmentRow(entry,c.employee);if(!(entry.employee_systems||[]).includes(row)){const newRow=Object.assign({employee:c.employee,days:structuredClone(entry.day_systems||[])},row);entry.employee_systems=entry.employee_systems||[];entry.employee_systems.push(newRow);row=newRow}if(decision.action==='finish'){row.work_to_date=parts[0];row.work_to_time=parts[1]}else{row.pauses=Array.isArray(row.pauses)?row.pauses:[];row.pauses.push({from_date:parts[0],from_time:parts[1],to_date:'',to_time:''})}})}
+function cgCloseEntryWhenEveryoneFinished(entry:any){
+  if(!entry||entry.end_date||entry.end_time)return;
+  const names=Array.isArray(entry.employees)?entry.employees.filter((n:any)=>String(n||'').trim()):[];
+  if(!names.length)return;
+  const ends:string[]=[];
+  for(const name of names){
+    const row=cgAssignmentRow(entry,name);
+    const end=cgAssignmentStamp(row.work_to_date,row.work_to_time);
+    if(!end)return;
+    ends.push(end);
+  }
+  ends.sort();
+  const latest=ends[ends.length-1],start=cgAssignmentStamp(entry.start_date,entry.start_time);
+  if(start&&latest<start)return;
+  const parts=latest.split('T');
+  entry.end_date=parts[0];
+  entry.end_time=parts[1];
+}
+function cgResolveAssignments(state:any,incoming:any,resolutions:any[]){
+  const names=incoming.employees||[];
+  if(new Set(names).size!==names.length)throw Object.assign(new Error('Ten sam pracownik został wybrany więcej niż raz.'),{status:400});
+  const conflicts=cgAssignmentConflicts(state.entries||[],incoming),missing=conflicts.filter(c=>{
+    const r=resolutions.find((x:any)=>x.key===c.key&&x.signature===c.signature);
+    return !r||!['pause','finish'].includes(r.action)
+  });
+  if(missing.length)throw Object.assign(new Error('Pracownik pracuje już przy innej centrali.'),{status:409,code:'EMPLOYEE_BUSY',conflicts:missing});
+  const touched:any[]=[];
+  conflicts.forEach(c=>{
+    const decision=resolutions.find((r:any)=>r.key===c.key&&r.signature===c.signature),entry=state.entries.find((e:any)=>Number(e.id)===Number(c.entry_id)),parts=c.at.split('T');
+    let row=cgAssignmentRow(entry,c.employee);
+    if(!(entry.employee_systems||[]).includes(row)){
+      const newRow=Object.assign({employee:c.employee,days:structuredClone(entry.day_systems||[])},row);
+      entry.employee_systems=entry.employee_systems||[];entry.employee_systems.push(newRow);row=newRow
+    }
+    if(decision.action==='finish'){row.work_to_date=parts[0];row.work_to_time=parts[1]}
+    else{row.pauses=Array.isArray(row.pauses)?row.pauses:[];row.pauses.push({from_date:parts[0],from_time:parts[1],to_date:'',to_time:''})}
+    if(decision.action==='finish'&&!touched.includes(entry))touched.push(entry)
+  });
+  touched.forEach(cgCloseEntryWhenEveryoneFinished)
+}
 
 async function handleApi(req:Request,hall:string,path:string){
   const method=req.method.toUpperCase();
@@ -279,3 +318,4 @@ Deno.serve(async(req:Request)=>{
     return new Response(html,{headers:{"Content-Type":"text/html; charset=utf-8","Cache-Control":"no-store"}});
   }catch(e:any){ console.error(e); return json({error:e?.message||"Błąd serwera.",code:e?.code||undefined,conflicts:e?.conflicts||undefined},Number(e?.status)||500); }
 });
+
