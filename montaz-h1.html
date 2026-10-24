@@ -2085,10 +2085,11 @@ function participationStatus(e,name,i){
   return a.length?a.join(' / '):'Cała praca'
 }
 function minsForEmployee(e,name,i){
-  if(!e.start_date||!e.end_date||!e.start_time||!e.end_time)return 0;
-  var a=new Date(e.start_date+'T00:00'),b=new Date(e.end_date+'T00:00');
+  var part=employeeParticipation(e,name,i),endDate=part.to_date||e.end_date,endTime=part.to_time||e.end_time;
+  if(!e.start_date||!endDate||!e.start_time||!endTime)return 0;
+  var a=new Date(e.start_date+'T00:00'),b=new Date(endDate+'T00:00');
   if(b<a)return 0;
-  var tot=0,dm={},part=employeeParticipation(e,name,i);
+  var tot=0,dm={};
   employeeDays(e,name,i).forEach(function(x){dm[x.date]=x.system});
   for(var d=new Date(a);d<=b;d.setDate(d.getDate()+1)){
     var ds=localDate(d);
@@ -2099,7 +2100,7 @@ function minsForEmployee(e,name,i){
     if(!sy||sy==='Wolne / brak pracy')continue;
     var p=parseSys(sy),fr=p[0],to=p[1];
     if(ds===e.start_date)fr=Math.max(fr,hm(e.start_time));
-    if(ds===e.end_date)to=Math.min(to,hm(e.end_time));
+    if(ds===endDate)to=Math.min(to,hm(endTime));
     if(part.from_date&&part.from_time&&ds===part.from_date)fr=Math.max(fr,hm(part.from_time));
     if(part.to_date&&part.to_time&&ds===part.to_date)to=Math.min(to,hm(part.to_time));
     tot+=Math.max(0,to-fr)
@@ -2112,26 +2113,24 @@ function employeePauseList(e,name,i){
   return Array.isArray(r.pauses)?r.pauses:[]
 }
 function pauseMinsForEmployee(e,name,i){
-  if(!e.start_date||!e.end_date||!e.start_time||!e.end_time)return 0;
-  var pauses=employeePauseList(e,name,i),a=new Date(e.start_date+'T00:00'),b=new Date(e.end_date+'T00:00'),dayMap={},part=employeeParticipation(e,name,i),total=0;
+  var part=employeeParticipation(e,name,i),endDate=part.to_date||e.end_date,endTime=part.to_time||e.end_time;
+  if(!e.start_date||!endDate||!e.start_time||!endTime)return 0;
+  var pauses=employeePauseList(e,name,i),a=new Date(e.start_date+'T00:00'),b=new Date(endDate+'T00:00'),dayMap={},total=0;
   employeeDays(e,name,i).forEach(function(x){dayMap[x.date]=x});
   for(var d=new Date(a);d<=b;d.setDate(d.getDate()+1)){
     var ds=localDate(d);if(isAutoFreeDay(d))continue;
     if(part.from_date&&ds<part.from_date)continue;if(part.to_date&&ds>part.to_date)continue;
     var rec=dayMap[ds]||{},sy=rec.system||e.system||'';if(!sy||sy==='Wolne / brak pracy')continue;
     var sp=parseSys(sy),fr=sp[0],to=sp[1];if(to<=fr)continue;
-    if(ds===e.start_date)fr=Math.max(fr,hm(e.start_time));if(ds===e.end_date)to=Math.min(to,hm(e.end_time));
+    if(ds===e.start_date)fr=Math.max(fr,hm(e.start_time));if(ds===endDate)to=Math.min(to,hm(endTime));
     if(part.from_date&&part.from_time&&ds===part.from_date)fr=Math.max(fr,hm(part.from_time));
     if(part.to_date&&part.to_time&&ds===part.to_date)to=Math.min(to,hm(part.to_time));
     if(to<=fr)continue;
     var intervals=[];
-    (Array.isArray(rec.breaks)?rec.breaks:[]).forEach(function(br){
-      var z=parseBreakRange(br);if(z)intervals.push([Math.max(fr,z[0]),Math.min(to,z[1])])
-    });
+    (Array.isArray(rec.breaks)?rec.breaks:[]).forEach(function(br){var z=parseBreakRange(br);if(z)intervals.push([Math.max(fr,z[0]),Math.min(to,z[1])])});
     pauses.forEach(function(q){
       if(!q.from_date||!q.from_time)return;
-      var qEndDate=(q.to_date&&q.to_time)?q.to_date:((part.to_date&&part.to_time)?part.to_date:e.end_date);
-      var qEndTime=(q.to_date&&q.to_time)?q.to_time:((part.to_date&&part.to_time)?part.to_time:e.end_time);
+      var qEndDate=(q.to_date&&q.to_time)?q.to_date:endDate,qEndTime=(q.to_date&&q.to_time)?q.to_time:endTime;
       if(!qEndDate||!qEndTime||ds<q.from_date||ds>qEndDate)return;
       var pf=ds===q.from_date?hm(q.from_time):0,pt=ds===qEndDate?hm(qEndTime):1440;
       intervals.push([Math.max(fr,pf),Math.min(to,pt)])
