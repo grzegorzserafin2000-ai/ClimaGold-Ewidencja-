@@ -2825,12 +2825,27 @@ async function saveEntryWithAssignments(entry){
   if(saveButton)saveButton.disabled=wasDisabled;
  }
 }
+function manualParticipationEndResults(entry){
+ if(!entry||!entry.id)return[];
+ var old=(D.entries||[]).find(function(e){return Number(e.id)===Number(entry.id)});
+ if(!old)return[];
+ var oldSystems=Array.isArray(old.employee_systems)?old.employee_systems:[],newSystems=Array.isArray(entry.employee_systems)?entry.employee_systems:[],items=[];
+ newSystems.forEach(function(row,index){
+  var employee=row.employee||(entry.employees||[])[index];
+  if(!employee||!row.work_to_date||!row.work_to_time)return;
+  var oldIndex=(old.employees||[]).indexOf(employee),oldRow=oldSystems.find(function(x){return x.employee===employee})||oldSystems[oldIndex]||{};
+  var hadEnd=!!((oldRow.work_to_date&&oldRow.work_to_time)||(old.end_date&&old.end_time));
+  if(!hadEnd)items.push({entry_id:old.id,number:old.number,employee:employee});
+ });
+ return items
+}
 function showAssignmentResults(items){
  if(!Array.isArray(items)||!items.length)return;
+ var unique=[];items.forEach(function(item){if(!unique.some(function(x){return Number(x.entry_id)===Number(item.entry_id)&&x.employee===item.employee}))unique.push(item)});items=unique;
  var backdrop=document.createElement('div');backdrop.className='assignment-warning';backdrop.setAttribute('role','dialog');backdrop.setAttribute('aria-modal','true');backdrop.setAttribute('aria-label','Wynik zakończenia pracy pracownika');
  var box=document.createElement('div');box.className='assignment-warning-box';
  var title=document.createElement('h2');title.textContent='Zapisano zakończenie pracy';box.appendChild(title);
- var note=document.createElement('p');note.textContent='Podsumowanie poprzedniej centrali:';box.appendChild(note);
+ var note=document.createElement('p');note.textContent='Podsumowanie centrali:';box.appendChild(note);
  items.forEach(function(item){
   var old=(D.entries||[]).find(function(e){return Number(e.id)===Number(item.entry_id)});
   var idx=old?(old.employees||[]).indexOf(item.employee):-1;
@@ -2846,7 +2861,7 @@ function showAssignmentResults(items){
  backdrop.appendChild(box);document.body.appendChild(backdrop);document.addEventListener('keydown',onKey);close.focus()
 }
 
-async function saveEntry(){if($('ed').value&&$('ett').value&&!finishPausedEmployeesAtPause())return;var employees=[],corrections=[],employee_systems=[];document.querySelectorAll('.empblock').forEach(function(block){var emp=block.querySelector('.emp').value;if(!emp)return;var group=(block.querySelector('.breakgroup')||{}).value||'A';employees.push(emp);corrections.push(+block.querySelector('.corr').value||0);employee_systems.push({employee:emp,break_group:group,days:[].slice.call(block.querySelectorAll('.empdayrow')).map(function(r){return{date:r.dataset.date,system:r.querySelector('select').value,breaks:dayBreakSnapshot(r,group)}}),work_from_date:block.querySelector('.pfromd').value,work_from_time:block.querySelector('.pfromt').value,work_to_date:block.querySelector('.ptod').value,work_to_time:block.querySelector('.ptot').value,pauses:collectPauses(block)})});var section=(isMontazHall()&&isSplitDeviceType($('dt').value))?$('section').value:'';if(isMontazHall()&&isSplitDeviceType($('dt').value)&&!section){alert('Wybierz sekcję centrali dzielonej.');return}var x={id:$('eid').value?+$('eid').value:undefined,start_date:$('sd').value,end_date:$('ed').value,device_type:$('dt').value,number:$('no').value,start_time:$('stt').value,end_time:$('ett').value,day_systems:employee_systems[0]?employee_systems[0].days:[],employee_systems:employee_systems,employees:employees,corrections:corrections,notes:notesWithSection($('notes').value,section),mark_color:$('markcolor').value,additional_employees:employees.filter(function(n){return extraWorkers().indexOf(n)>=0||(D.entries||[]).some(function(old){return +old.id===+($('eid').value||0)&&entryExtraNames(old).indexOf(n)>=0})})};if(!x.start_date||!x.start_time){alert('Uzupełnij datę i godzinę rozpoczęcia');return}if((x.end_date&&!x.end_time)||(!x.end_date&&x.end_time)){alert('Uzupełnij jednocześnie datę i godzinę zakończenia');return}if(x.end_date&&x.end_date<x.start_date){alert('Błędna data zakończenia');return}try{var outcome=await saveEntryWithAssignments(x);if(!outcome)return}catch(e){alert(e.message||'Nie udało się zapisać wpisu.');return}D=await api('/api/data');closeEntry();renderAll();showAssignmentResults(outcome.finishedConflicts)}
+async function saveEntry(){if($('ed').value&&$('ett').value&&!finishPausedEmployeesAtPause())return;var employees=[],corrections=[],employee_systems=[];document.querySelectorAll('.empblock').forEach(function(block){var emp=block.querySelector('.emp').value;if(!emp)return;var group=(block.querySelector('.breakgroup')||{}).value||'A';employees.push(emp);corrections.push(+block.querySelector('.corr').value||0);employee_systems.push({employee:emp,break_group:group,days:[].slice.call(block.querySelectorAll('.empdayrow')).map(function(r){return{date:r.dataset.date,system:r.querySelector('select').value,breaks:dayBreakSnapshot(r,group)}}),work_from_date:block.querySelector('.pfromd').value,work_from_time:block.querySelector('.pfromt').value,work_to_date:block.querySelector('.ptod').value,work_to_time:block.querySelector('.ptot').value,pauses:collectPauses(block)})});var section=(isMontazHall()&&isSplitDeviceType($('dt').value))?$('section').value:'';if(isMontazHall()&&isSplitDeviceType($('dt').value)&&!section){alert('Wybierz sekcję centrali dzielonej.');return}var x={id:$('eid').value?+$('eid').value:undefined,start_date:$('sd').value,end_date:$('ed').value,device_type:$('dt').value,number:$('no').value,start_time:$('stt').value,end_time:$('ett').value,day_systems:employee_systems[0]?employee_systems[0].days:[],employee_systems:employee_systems,employees:employees,corrections:corrections,notes:notesWithSection($('notes').value,section),mark_color:$('markcolor').value,additional_employees:employees.filter(function(n){return extraWorkers().indexOf(n)>=0||(D.entries||[]).some(function(old){return +old.id===+($('eid').value||0)&&entryExtraNames(old).indexOf(n)>=0})})};if(!x.start_date||!x.start_time){alert('Uzupełnij datę i godzinę rozpoczęcia');return}if((x.end_date&&!x.end_time)||(!x.end_date&&x.end_time)){alert('Uzupełnij jednocześnie datę i godzinę zakończenia');return}if(x.end_date&&x.end_date<x.start_date){alert('Błędna data zakończenia');return}var manualEnds=manualParticipationEndResults(x);try{var outcome=await saveEntryWithAssignments(x);if(!outcome)return}catch(e){alert(e.message||'Nie udało się zapisać wpisu.');return}D=await api('/api/data');closeEntry();renderAll();showAssignmentResults(manualEnds.concat(outcome.finishedConflicts))}
 async function delEntry(id){
   var old=(D.entries||[]).find(function(e){return +e.id===+id});
   if(!confirm('Usunąć wpis centrali '+(old&&old.number||'')+'? Będzie można go przywrócić przyciskiem „Cofnij usunięcie”.'))return;
