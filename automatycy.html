@@ -1254,7 +1254,7 @@ th{background:#f6f8f9}
 .daily-exceptions-actions{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 6px}
 @media(max-width:500px){.daily-exception-row select{flex:1 1 100%}.daily-exception-row .btn{margin-left:auto}}
  .plan-toolbar label{display:grid;gap:6px}.plan-toolbar input,.plan-toolbar select,#workPlanRows select{padding:10px;border:1px solid var(--line);border-radius:9px;background:white;max-width:100%}.plan-custom{display:flex;gap:10px;margin-top:8px}.plan-custom[hidden]{display:none}.plan-custom label{display:grid;gap:5px}.plan-custom input{width:110px;padding:8px}#workPlanRows td{padding:12px}#workPlanRows select{width:100%}@media(max-width:600px){.plan-toolbar{align-items:stretch}.plan-toolbar label,.plan-toolbar button{width:100%}#workPlanRows td{padding:8px}#workPlanRows td:first-child{max-width:140px;white-space:normal}.plan-custom{flex-wrap:wrap}}
-.assignment-warning{position:fixed;inset:0;background:#101820aa;z-index:10000;display:grid;place-items:center;padding:16px}.assignment-warning-box{background:#fff;color:#17212b;border-radius:14px;padding:22px;width:min(100%,480px);box-shadow:0 18px 60px #0005}.assignment-warning-box h2{font-size:20px;margin:0 0 12px}.assignment-warning-box p{line-height:1.45}.assignment-warning-box .btn{display:block;width:100%;margin-top:9px}
+.assignment-warning{position:fixed;inset:0;background:#101820aa;z-index:10000;display:grid;place-items:center;padding:16px}.assignment-warning-box{background:#fff;color:#17212b;border-radius:14px;padding:22px;width:min(100%,480px);box-shadow:0 18px 60px #0005}.assignment-warning-box h2{font-size:20px;margin:0 0 12px}.assignment-warning-box p{line-height:1.45}.assignment-warning-box .btn{display:block;width:100%;margin-top:9px}.assignment-result-card{border:1px solid #dfe4e8;border-radius:10px;padding:11px;margin:10px 0;background:#f8fafb}.assignment-result-card p{margin:7px 0 2px}.assignment-result-card small{display:block;color:#566575;line-height:1.4;margin-top:5px}
 </style><style>
 #entries .entry-toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:12px 0}
 #entries .entry-actions,#entries .entry-filters{display:contents}
@@ -2805,11 +2805,18 @@ async function saveEntryWithAssignments(entry){
  var saveButton=document.querySelector('.entrysavebtn'),wasDisabled=saveButton?saveButton.disabled:false;
  if(saveButton)saveButton.disabled=true;
  try{
-  var resolutions=[],requestId=entry.id?'':(window.crypto&&crypto.randomUUID?crypto.randomUUID():'cg-'+Date.now()+'-'+Math.random().toString(36).slice(2));
+  var resolutions=[],finishedConflicts=[],requestId=entry.id?'':(window.crypto&&crypto.randomUUID?crypto.randomUUID():'cg-'+Date.now()+'-'+Math.random().toString(36).slice(2));
   for(var attempt=0;attempt<10;attempt++){
-   try{return await api('/api/entry',{method:'POST',body:JSON.stringify(Object.assign({},entry,{assignment_request_id:requestId,assignment_resolutions:resolutions}))})}
-   catch(e){if(e.code!=='EMPLOYEE_BUSY'||!Array.isArray(e.conflicts))throw e;
-    for(var i=0;i<e.conflicts.length;i++){var c=e.conflicts[i],action=await chooseAssignmentAction(c);if(!action)return null;resolutions=resolutions.filter(function(r){return r.key!==c.key});resolutions.push({key:c.key,signature:c.signature,action:action})}
+   try{
+    var response=await api('/api/entry',{method:'POST',body:JSON.stringify(Object.assign({},entry,{assignment_request_id:requestId,assignment_resolutions:resolutions}))});
+    return{response:response,finishedConflicts:finishedConflicts}
+   }catch(e){if(e.code!=='EMPLOYEE_BUSY'||!Array.isArray(e.conflicts))throw e;
+    for(var i=0;i<e.conflicts.length;i++){
+     var c=e.conflicts[i],action=await chooseAssignmentAction(c);if(!action)return null;
+     resolutions=resolutions.filter(function(r){return r.key!==c.key});
+     resolutions.push({key:c.key,signature:c.signature,action:action});
+     if(action==='finish'&&!finishedConflicts.some(function(x){return x.key===c.key}))finishedConflicts.push({key:c.key,entry_id:c.entry_id,number:c.number,employee:c.employee})
+    }
    }
   }
   throw Error('Dane zmieniają się równocześnie. Spróbuj zapisać ponownie.')
@@ -2818,8 +2825,28 @@ async function saveEntryWithAssignments(entry){
   if(saveButton)saveButton.disabled=wasDisabled;
  }
 }
+function showAssignmentResults(items){
+ if(!Array.isArray(items)||!items.length)return;
+ var backdrop=document.createElement('div');backdrop.className='assignment-warning';backdrop.setAttribute('role','dialog');backdrop.setAttribute('aria-modal','true');backdrop.setAttribute('aria-label','Wynik zakończenia pracy pracownika');
+ var box=document.createElement('div');box.className='assignment-warning-box';
+ var title=document.createElement('h2');title.textContent='Zapisano zakończenie pracy';box.appendChild(title);
+ var note=document.createElement('p');note.textContent='Podsumowanie poprzedniej centrali:';box.appendChild(note);
+ items.forEach(function(item){
+  var old=(D.entries||[]).find(function(e){return Number(e.id)===Number(item.entry_id)});
+  var idx=old?(old.employees||[]).indexOf(item.employee):-1;
+  var isClosed=!!(old&&old.end_date&&old.end_time);
+  var card=document.createElement('div');card.className='assignment-result-card';
+  var heading=document.createElement('strong');heading.textContent='Centrala nr '+(item.number||'bez numeru')+' — '+(isClosed?'ZAKOŃCZONA':'W TOKU');card.appendChild(heading);
+  var line=document.createElement('p');line.textContent=item.employee+': czas pracy przy tej centrali '+(old&&idx>=0?fmt(effectiveMins(old,item.employee,idx)):'—')+'.';card.appendChild(line);
+  if(old&&!isClosed){var active=document.createElement('small');active.textContent='Centrala pozostaje w toku, ponieważ pracują przy niej jeszcze inne osoby.';card.appendChild(active)}
+  box.appendChild(card)
+ });
+ var close=document.createElement('button');close.type='button';close.className='btn';close.textContent='OK';close.onclick=function(){document.removeEventListener('keydown',onKey);backdrop.remove()};box.appendChild(close);
+ function onKey(e){if(e.key==='Escape'){e.preventDefault();e.stopImmediatePropagation();close.click()}}
+ backdrop.appendChild(box);document.body.appendChild(backdrop);document.addEventListener('keydown',onKey);close.focus()
+}
 
-async function saveEntry(){if($('ed').value&&$('ett').value&&!finishPausedEmployeesAtPause())return;var employees=[],corrections=[],employee_systems=[];document.querySelectorAll('.empblock').forEach(function(block){var emp=block.querySelector('.emp').value;if(!emp)return;var group=(block.querySelector('.breakgroup')||{}).value||'A';employees.push(emp);corrections.push(+block.querySelector('.corr').value||0);employee_systems.push({employee:emp,break_group:group,days:[].slice.call(block.querySelectorAll('.empdayrow')).map(function(r){return{date:r.dataset.date,system:r.querySelector('select').value,breaks:dayBreakSnapshot(r,group)}}),work_from_date:block.querySelector('.pfromd').value,work_from_time:block.querySelector('.pfromt').value,work_to_date:block.querySelector('.ptod').value,work_to_time:block.querySelector('.ptot').value,pauses:collectPauses(block)})});var section=(isMontazHall()&&isSplitDeviceType($('dt').value))?$('section').value:'';if(isMontazHall()&&isSplitDeviceType($('dt').value)&&!section){alert('Wybierz sekcję centrali dzielonej.');return}var x={id:$('eid').value?+$('eid').value:undefined,start_date:$('sd').value,end_date:$('ed').value,device_type:$('dt').value,number:$('no').value,start_time:$('stt').value,end_time:$('ett').value,day_systems:employee_systems[0]?employee_systems[0].days:[],employee_systems:employee_systems,employees:employees,corrections:corrections,notes:notesWithSection($('notes').value,section),mark_color:$('markcolor').value,additional_employees:employees.filter(function(n){return extraWorkers().indexOf(n)>=0||(D.entries||[]).some(function(old){return +old.id===+($('eid').value||0)&&entryExtraNames(old).indexOf(n)>=0})})};if(!x.start_date||!x.start_time){alert('Uzupełnij datę i godzinę rozpoczęcia');return}if((x.end_date&&!x.end_time)||(!x.end_date&&x.end_time)){alert('Uzupełnij jednocześnie datę i godzinę zakończenia');return}if(x.end_date&&x.end_date<x.start_date){alert('Błędna data zakończenia');return}try{var saved=await saveEntryWithAssignments(x);if(!saved)return}catch(e){alert(e.message||'Nie udało się zapisać wpisu.');return}D=await api('/api/data');closeEntry();renderAll()}
+async function saveEntry(){if($('ed').value&&$('ett').value&&!finishPausedEmployeesAtPause())return;var employees=[],corrections=[],employee_systems=[];document.querySelectorAll('.empblock').forEach(function(block){var emp=block.querySelector('.emp').value;if(!emp)return;var group=(block.querySelector('.breakgroup')||{}).value||'A';employees.push(emp);corrections.push(+block.querySelector('.corr').value||0);employee_systems.push({employee:emp,break_group:group,days:[].slice.call(block.querySelectorAll('.empdayrow')).map(function(r){return{date:r.dataset.date,system:r.querySelector('select').value,breaks:dayBreakSnapshot(r,group)}}),work_from_date:block.querySelector('.pfromd').value,work_from_time:block.querySelector('.pfromt').value,work_to_date:block.querySelector('.ptod').value,work_to_time:block.querySelector('.ptot').value,pauses:collectPauses(block)})});var section=(isMontazHall()&&isSplitDeviceType($('dt').value))?$('section').value:'';if(isMontazHall()&&isSplitDeviceType($('dt').value)&&!section){alert('Wybierz sekcję centrali dzielonej.');return}var x={id:$('eid').value?+$('eid').value:undefined,start_date:$('sd').value,end_date:$('ed').value,device_type:$('dt').value,number:$('no').value,start_time:$('stt').value,end_time:$('ett').value,day_systems:employee_systems[0]?employee_systems[0].days:[],employee_systems:employee_systems,employees:employees,corrections:corrections,notes:notesWithSection($('notes').value,section),mark_color:$('markcolor').value,additional_employees:employees.filter(function(n){return extraWorkers().indexOf(n)>=0||(D.entries||[]).some(function(old){return +old.id===+($('eid').value||0)&&entryExtraNames(old).indexOf(n)>=0})})};if(!x.start_date||!x.start_time){alert('Uzupełnij datę i godzinę rozpoczęcia');return}if((x.end_date&&!x.end_time)||(!x.end_date&&x.end_time)){alert('Uzupełnij jednocześnie datę i godzinę zakończenia');return}if(x.end_date&&x.end_date<x.start_date){alert('Błędna data zakończenia');return}try{var outcome=await saveEntryWithAssignments(x);if(!outcome)return}catch(e){alert(e.message||'Nie udało się zapisać wpisu.');return}D=await api('/api/data');closeEntry();renderAll();showAssignmentResults(outcome.finishedConflicts)}
 async function delEntry(id){
   var old=(D.entries||[]).find(function(e){return +e.id===+id});
   if(!confirm('Usunąć wpis centrali '+(old&&old.number||'')+'? Będzie można go przywrócić przyciskiem „Cofnij usunięcie”.'))return;
