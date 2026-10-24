@@ -101,6 +101,30 @@ function cgCloseEntryWhenEveryoneFinished(entry:any){
   entry.end_date=parts[0];
   entry.end_time=parts[1];
 }
+function cgAddDate(date:string,days:number){const d=new Date(date+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+days);return d.toISOString().slice(0,10)}
+function cgEasterSunday(year:number){const a=year%19,b=Math.floor(year/100),c=year%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),month=Math.floor((h+l-7*m+114)/31),day=((h+l-7*m+114)%31)+1;return new Date(Date.UTC(year,month-1,day,12))}
+function cgAutoFreeDate(date:string){const d=new Date(date+'T12:00:00Z'),md=date.slice(5),year=d.getUTCFullYear();if(d.getUTCDay()===0||['01-01','01-06','05-01','05-03','08-15','11-01','11-11','12-24','12-25','12-26'].includes(md))return true;const easter=cgEasterSunday(year);return [0,1,49,60].some(n=>{const day=new Date(easter);day.setUTCDate(day.getUTCDate()+n);return day.toISOString().slice(0,10)===date})}
+function cgBackfillEmployeeDays(state:any,entry:any,row:any,name:string,endDate:string){
+  const settings=state.settings&&typeof state.settings==='object'?state.settings:{},startDate=[entry.start_date,row.work_from_date].filter(Boolean).sort().slice(-1)[0];
+  if(!startDate||!endDate||endDate<startDate)return;
+  const days=Array.isArray(row.days)?row.days.slice():structuredClone(entry.day_systems||[]),known=new Set(days.map((d:any)=>String(d.date||''))),systems=Array.isArray(settings.systems)?settings.systems:[],daily=settings.daily_systems&&typeof settings.daily_systems==='object'?settings.daily_systems:{},overrides=settings.employee_daily_systems&&typeof settings.employee_daily_systems==='object'?settings.employee_daily_systems:{},planned=settings.work_plan_dates&&typeof settings.work_plan_dates==='object'?settings.work_plan_dates:{},extras=Array.isArray(settings.additional_employees)?settings.additional_employees:[],breakMap=settings.system_breaks&&typeof settings.system_breaks==='object'?settings.system_breaks:{},group=row.break_group==='B'?'B':(settings.employee_break_groups&&settings.employee_break_groups[name]==='B'?'B':'A');
+  for(let date=startDate;date<=endDate;date=cgAddDate(date,1)){
+    if(known.has(date))continue;
+    let system='';const exception=overrides[date]&&overrides[date][name];
+    if(cgAutoFreeDate(date))system='Wolne / brak pracy';
+    else if(exception==='Wolne / brak pracy'||(typeof exception==='string'&&(systems.includes(exception)||/^(?:[01]\d|2[0-3]):[0-5]\d-(?:[01]\d|2[0-3]):[0-5]\d$/.test(exception))))system=exception;
+    else if(planned[date]&&extras.includes(name))system='Wolne / brak pracy';
+    else if(daily[date]&&systems.includes(daily[date]))system=daily[date];
+    else{
+      const dow=new Date(date+'T12:00:00Z').getUTCDay();
+      system=dow===6?'Wolne / brak pracy':(systems[0]||'');
+    }
+    const configured=breakMap[system]&&typeof breakMap[system]==='object'?breakMap[system][group]:[];
+    const breaks=system==='Wolne / brak pracy'?[]:(Array.isArray(configured)?configured.slice():(typeof configured==='string'?configured.split(/[,;\n]+/).map((v:string)=>v.trim()).filter(Boolean):[]));
+    days.push({date,system,breaks});known.add(date)
+  }
+  days.sort((a:any,b:any)=>String(a.date).localeCompare(String(b.date)));row.days=days
+}
 function cgResolveAssignments(state:any,incoming:any,resolutions:any[]){
   const names=incoming.employees||[];
   if(new Set(names).size!==names.length)throw Object.assign(new Error('Ten sam pracownik został wybrany więcej niż raz.'),{status:400});
@@ -117,7 +141,7 @@ function cgResolveAssignments(state:any,incoming:any,resolutions:any[]){
       const newRow=Object.assign({employee:c.employee,days:structuredClone(entry.day_systems||[])},row);
       entry.employee_systems=entry.employee_systems||[];entry.employee_systems.push(newRow);row=newRow
     }
-    if(decision.action==='finish'){row.work_to_date=parts[0];row.work_to_time=parts[1]}
+    if(decision.action==='finish'){cgBackfillEmployeeDays(state,entry,row,c.employee,parts[0]);row.work_to_date=parts[0];row.work_to_time=parts[1]}
     else{row.pauses=Array.isArray(row.pauses)?row.pauses:[];row.pauses.push({from_date:parts[0],from_time:parts[1],to_date:'',to_time:''})}
     if(decision.action==='finish'&&!touched.includes(entry))touched.push(entry)
   });
