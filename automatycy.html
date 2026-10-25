@@ -1306,9 +1306,23 @@ th{background:#f6f8f9}
 <style id="cg-entry-search-icon">
 #entries .entry-search-row #search{background-image:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2220%22 height=%2220%22 viewBox=%220 0 20 20%22 fill=%22none%22 stroke=%22%2378848e%22 stroke-width=%221.8%22%3E%3Ccircle cx=%228.5%22 cy=%228.5%22 r=%225.5%22/%3E%3Cpath d=%22m13 13 4 4%22/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:14px center;background-size:17px 17px;padding-left:40px!important}
 </style>
+<style id="climagold-brand-refresh">
+/* Delikatne ozdoby i oryginalne logo ClimaGold */
+body{background:#f3f5f7}
+.login{background-color:#202c38;background-image:url("./climagold-bg.svg");background-position:center;background-size:cover}
+.climagold-logo{display:block;width:min(100%,218px);height:auto;object-fit:contain}
+.login .brand{justify-content:flex-start;min-height:34px}
+.side{background:#202c38}
+.side .brand{min-height:46px;align-items:center}
+.side .climagold-logo{width:min(100%,194px);height:auto}
+.online{color:#f2f5f7;background:rgba(255,255,255,.09);border-color:rgba(255,255,255,.18)}
+.online #onlineTime{color:#e4e9ed}
+.online .btn.secondary{background:#f5f7f8;color:#26313a}
+@media(max-width:800px){body{background-attachment:scroll}.side{background-size:100% 100%}.side .climagold-logo{width:min(100%,194px)}}
+</style>
 </head><body>
-<div id="login" class="login"><div class="box"><button type="button" class="btn secondary" onclick="location.href='./index.html'" style="width:100%;margin:0 0 14px">← Wróć do wyboru działu</button><div class="brand"><span class="brandmark" aria-hidden="true"><i></i><i></i><i></i></span><span class="brandtext"><span class="clima">Clima</span><span class="gold">Gold</span></span></div><h2>Automatycy</h2><div class="hint">Wspólna baza online</div><div class="field"><label>Login</label><input id="lu" value="brygadzista" autocomplete="username"></div><div class="field"><label>Hasło</label><input id="lp" type="password" autocomplete="current-password"></div><button class="btn" onclick="doLogin()">Zaloguj</button><div id="le" class="error"></div></div></div>
-<div id="app" class="app"><aside class="side"><div class="brand"><span class="brandmark" aria-hidden="true"><i></i><i></i><i></i></span><span class="brandtext"><span class="clima">Clima</span><span class="gold">Gold</span></span></div><span class="hall">AUTOMATYCY</span><div class="nav">
+<div id="login" class="login"><div class="box"><button type="button" class="btn secondary" onclick="location.href='./index.html'" style="width:100%;margin:0 0 14px">← Wróć do wyboru działu</button><div class="brand"><img class="climagold-logo" src="./climagold-logo.svg" alt="ClimaGold"></div><h2>Automatycy</h2><div class="hint">Wspólna baza online</div><div class="field"><label>Login</label><input id="lu" value="brygadzista" autocomplete="username"></div><div class="field"><label>Hasło</label><input id="lp" type="password" autocomplete="current-password"></div><button class="btn" onclick="doLogin()">Zaloguj</button><div id="le" class="error"></div></div></div>
+<div id="app" class="app"><aside class="side"><div class="brand"><img class="climagold-logo" src="./climagold-logo.svg" alt="ClimaGold"></div><span class="hall">AUTOMATYCY</span><div class="nav">
   <button class="active" data-v="dashboard"><span class="navsvg"><svg viewBox="0 0 24 24"><path d="M3 11 12 3l9 8v10h-6v-6H9v6H3V11Z"/></svg></span><span>Dashboard</span></button>
   <button data-v="workplan"><span class="navsvg"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 3h3V1h2v2h6V1h2v2h3a2 2 0 0 1 2 2v5h-2V8H4v12h6v2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Zm0 2v1h16V5H4Z"/><circle cx="17" cy="17" r="5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M17 14v3l2 1" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Grafik pracy</span></button><button data-v="entries"><span class="navsvg"><svg viewBox="0 0 24 24"><path d="M6 2h12v3h3v17H3V5h3V2Zm2 3h8V4H8v1Zm-2 4v10h12V9H6Z"/></svg></span><span>Ewidencja</span></button>
   <button data-v="stats"><span class="navsvg"><svg viewBox="0 0 24 24"><path d="M4 20h3V10H4v10Zm6 0h4V4h-4v16Zm7 0h3V7h-3v13Z"/></svg></span><span>Statystyki</span></button>

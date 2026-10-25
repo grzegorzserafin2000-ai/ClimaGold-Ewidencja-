@@ -109,13 +109,16 @@ body{
   .tile .icon{width:34px;height:34px}
 }
 </style>
+<style id="climagold-brand-refresh">
+body{background-color:#202c38;background-image:url("./climagold-bg.svg");background-position:center;background-repeat:no-repeat;background-size:cover;background-attachment:fixed}
+.climagold-logo{display:block;width:min(100%,218px);height:auto;object-fit:contain}
+.box .brand{min-height:34px}
+@media(max-width:800px){body{background-attachment:scroll}}
+</style>
 </head>
 <body>
 <main class="box">
-  <div class="brand">
-    <span class="brandmark" aria-hidden="true"><i></i><i></i><i></i></span>
-    <span><span class="clima">Clima</span><span class="gold">Gold</span></span>
-  </div>
+  <div class="brand"><img class="climagold-logo" src="./climagold-logo.svg" alt="ClimaGold"></div>
 
   <div class="muted">Ewidencja pracy online</div>
 

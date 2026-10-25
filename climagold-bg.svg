@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice">
+<g fill="none" stroke="#f4761f" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" opacity=".66">
+<path d="M-5 230h125l50 85-50 85H-5"/>
+<path d="M120 230l50-85h100l50 85-50 85H170"/>
+<path d="M-5 650h105l50 85-50 85-105 0"/>
+<path d="M100 820l50 85h100l50 85"/>
+<path d="M1925 210h-125l-50 85 50 85h125"/>
+<path d="M1800 210l-50-85h-100l-50 85 50 85h100"/>
+<path d="M1925 690h-115l-50 85 50 85h115"/>
+<path d="M1810 860l-50 85h-100l-50 85h110"/>
+</g>
+<g fill="#f4761f" opacity=".82">
+<circle cx="120" cy="230" r="6"/><circle cx="170" cy="315" r="6"/><circle cx="270" cy="145" r="6"/>
+<circle cx="100" cy="650" r="6"/><circle cx="150" cy="735" r="6"/><circle cx="250" cy="905" r="6"/>
+<circle cx="1800" cy="210" r="6"/><circle cx="1750" cy="295" r="6"/><circle cx="1650" cy="125" r="6"/>
+<circle cx="1810" cy="690" r="6"/><circle cx="1760" cy="775" r="6"/><circle cx="1660" cy="945" r="6"/>
+</g></svg>
