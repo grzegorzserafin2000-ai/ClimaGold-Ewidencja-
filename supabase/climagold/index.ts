@@ -1,3 +1,12 @@
+function validateBundle(e:any,hall:string){
+ if(hall!=="M1"||!Array.isArray(e.bundle_units))return;
+ const fail=(m:string)=>{throw Object.assign(new Error(m),{status:400})};
+ if(!e.bundle_units.length||e.bundle_units.length>100)fail("Zestaw musi zawierać od 1 do 100 central.");
+ const seen=new Set();e.bundle_units=e.bundle_units.map((u:any)=>{const n=String(u.number||"").trim(),d=String(u.end_date||""),t=String(u.end_time||"");if(!n||seen.has(n.toLowerCase()))fail("Numery central muszą być niepuste i unikalne.");seen.add(n.toLowerCase());if(!!d!==!!t||d&&(!/^\d{4}-\d{2}-\d{2}$/.test(d)||!/^([01]\d|2[0-3]):[0-5]\d$/.test(t)||d+"T"+t<e.start_date+"T"+e.start_time))fail("Błędne zakończenie centrali.");return{number:n,end_date:d,end_time:t}});
+ if(e.end_date&&e.end_time)e.bundle_units.forEach((u:any)=>{if(!u.end_date){u.end_date=e.end_date;u.end_time=e.end_time}if(u.end_date+"T"+u.end_time>e.end_date+"T"+e.end_time)fail("Koniec zestawu jest wcześniejszy niż koniec centrali.")});
+ else if(e.bundle_units.every((u:any)=>u.end_date&&u.end_time)){const end=e.bundle_units.map((u:any)=>u.end_date+"T"+u.end_time).sort().pop();e.end_date=end.slice(0,10);e.end_time=end.slice(11)}
+ e.number=e.bundle_units.length>1?"Zestaw ("+e.bundle_units.length+"): "+e.bundle_units.map((u:any)=>u.number).join(", "):e.bundle_units[0].number;
+}
 import { createClient } from "npm:@supabase/supabase-js@2.95.0";
 
 const corsHeaders = {
@@ -177,10 +186,13 @@ async function handleApi(req:Request,hall:string,path:string){
   if(path==="/api/entry"&&method==="POST"){
     requireRole(u,["admin","supervisor"]); const x:any=await body(req),resolutions=Array.isArray(x.assignment_resolutions)?x.assignment_resolutions:[],requestId=String(x.assignment_request_id||'').slice(0,100);
     const clean:any={id:x.id?Number(x.id):undefined,start_date:String(x.start_date||""),end_date:String(x.end_date||""),device_type:String(x.device_type||""),number:String(x.number||""),start_time:String(x.start_time||""),end_time:String(x.end_time||""),day_systems:Array.isArray(x.day_systems)?x.day_systems:[],employee_systems:Array.isArray(x.employee_systems)?x.employee_systems:[],employee_participation:Array.isArray(x.employee_participation)?x.employee_participation.slice(0,10).map((p:any)=>({employee:String(p?.employee||""),start_at:String(p?.start_at||""),end_at:String(p?.end_at||"")})):[],employees:Array.isArray(x.employees)?x.employees.slice(0,10):[],additional_employees:Array.isArray(x.additional_employees)?x.additional_employees.slice(0,10):[],corrections:Array.isArray(x.corrections)?x.corrections.slice(0,10).map((v:any)=>Number(v)||0):[0,0,0,0,0,0,0,0,0,0],notes:String(x.notes||""),mark_color:String(x.mark_color||"")};
+    if(hall==="M1"&&Array.isArray(x.bundle_units))clean.bundle_units=x.bundle_units;
     if(!clean.start_date||!clean.start_time)return json({error:"Uzupełnij datę i godzinę rozpoczęcia."},400);
     let savedId=Number(clean.id)||0;
     await mutateState(hall,u.username,(s:any)=>{
       s.entries=Array.isArray(s.entries)?s.entries:[];
+      if(hall==="M1"&&!Array.isArray(x.bundle_units)){const prev=s.entries.find((e:any)=>Number(e.id)===Number(clean.id));if(prev?.bundle_units)clean.bundle_units=prev.bundle_units;}
+      validateBundle(clean,hall);
       if(!clean.id&&requestId){const duplicate=s.entries.find((e:any)=>e.assignment_request_id===requestId);if(duplicate){savedId=Number(duplicate.id);return}}
       if(clean.id&&!s.entries.some((e:any)=>Number(e.id)===Number(clean.id)))throw Object.assign(new Error("Nie znaleziono wpisu."),{status:404});
       const candidate=structuredClone(clean);
@@ -342,4 +354,5 @@ Deno.serve(async(req:Request)=>{
     return new Response(html,{headers:{"Content-Type":"text/html; charset=utf-8","Cache-Control":"no-store"}});
   }catch(e:any){ console.error(e); return json({error:e?.message||"Błąd serwera.",code:e?.code||undefined,conflicts:e?.conflicts||undefined},Number(e?.status)||500); }
 });
+
 
