@@ -3291,12 +3291,13 @@ var bundleRows=[];
 function loadBundle(e){
  bundleRows=Array.isArray(e.bundle_units)&&e.bundle_units.length?JSON.parse(JSON.stringify(e.bundle_units)):[{number:e.number||'',end_date:e.end_date||'',end_time:e.end_time||''}];
  bundleRows.forEach(function(u){if(e.end_date&&e.end_time&&!u.end_date){u.end_date=e.end_date;u.end_time=e.end_time}});
- $('no').closest('.field').style.display='none';
+ if(!$('bundleToggle')){var label=document.createElement('label');label.style.cssText='display:block;margin:12px 0';var toggle=document.createElement('input');toggle.type='checkbox';toggle.id='bundleToggle';label.appendChild(toggle);label.appendChild(document.createTextNode(' Kilka central dla jednej ekipy'));$('no').closest('.grid').before(label);toggle.onchange=function(){if(!toggle.checked&&bundleRows.length>1){alert('Najpierw usuń dodatkowe centrale z zestawu.');toggle.checked=true;return}if(toggle.checked&&bundleRows.length===1)bundleRows[0].number=$('no').value;else if(!toggle.checked)$('no').value=bundleRows[0].number||'';renderBundle()}}
+ $('bundleToggle').checked=Array.isArray(e.bundle_units)&&e.bundle_units.length>1;
  if(!$('bundleBox')){var box=document.createElement('div');box.id='bundleBox';box.className='daybox';$('no').closest('.grid').after(box)}
  renderBundle();
 }
 function renderBundle(){
- var box=$('bundleBox');box.textContent='';var title=document.createElement('h3');title.textContent='Centrale wykonywane przez ekipę';box.appendChild(title);
+ var enabled=$('bundleToggle').checked;$('no').closest('.field').style.display=enabled?'none':'';var box=$('bundleBox');box.style.display=enabled?'block':'none';if(!enabled)return;box.textContent='';var title=document.createElement('h3');title.textContent='Centrale wykonywane przez ekipę';box.appendChild(title);
  var help=document.createElement('p');help.className='muted';help.textContent='Jeden typ i wspólny czas pracy. Każdą centralę kończysz osobno. Zmiany zatwierdź przyciskiem Zapisz. Godziny dotyczą całego zestawu.';box.appendChild(help);
  bundleRows.forEach(function(u,i){
   var row=document.createElement('div');row.style.cssText='display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:10px 0';
@@ -3309,6 +3310,8 @@ function renderBundle(){
  var add=document.createElement('button');add.type='button';add.className='btn secondary';add.textContent='+ Dodaj centralę';add.onclick=function(){if(bundleRows.length>=100)return;bundleRows.push({number:'',end_date:'',end_time:''});renderBundle()};box.appendChild(add);
 }
 function prepareBundle(x){
+ if(!$('bundleToggle').checked){x.bundle_units=[{number:x.number.trim(),end_date:x.end_date||'',end_time:x.end_time||''}];return true}
+
  var seen={},units=bundleRows.map(function(u){return{number:u.number.trim(),end_date:u.end_date||'',end_time:u.end_time||''}});
  for(var i=0;i<units.length;i++){var u=units[i],key=u.number.toLocaleLowerCase();if(!key){alert('Wpisz numer każdej centrali w zestawie.');return false}if(seen[key]){alert('Numer centrali powtarza się: '+u.number);return false}seen[key]=true;
   if(!!u.end_date!==!!u.end_time){alert('Uzupełnij datę i godzinę zakończenia centrali '+u.number);return false}
