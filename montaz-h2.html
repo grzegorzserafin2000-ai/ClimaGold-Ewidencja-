@@ -2587,6 +2587,10 @@ function smartPartTime(){
 }
 function toggleParticipation(btn,kind){
   var block=btn.closest('.empblock'),box=block.querySelector(kind==='from'?'.frompart':'.topart');
+  if(kind==='from'&&(block.querySelector('.ptod').value||block.querySelector('.ptot').value)){
+    alert('Ten pracownik ma zapisany koniec pracy. Jeżeli wraca do centrali, użyj „↩ Ponownie dołącza” w sekcji wstrzymań. Zachowa to wcześniejsze godziny i zapisze przerwę. Aby poprawić sam początek, edytuj jego datę bezpośrednio.');return
+  }
+
   if(!box)return;
   if(!box.classList.contains('open')){
     box.classList.add('open');
@@ -2905,7 +2909,37 @@ function showAssignmentResults(items){
  backdrop.appendChild(box);document.body.appendChild(backdrop);document.addEventListener('keydown',onKey);close.focus()
 }
 
-async function saveEntry(){if($('ed').value&&$('ett').value&&!finishPausedEmployeesAtPause())return;var employees=[],corrections=[],employee_systems=[];document.querySelectorAll('.empblock').forEach(function(block){var emp=block.querySelector('.emp').value;if(!emp)return;var group=(block.querySelector('.breakgroup')||{}).value||'A';employees.push(emp);corrections.push(+block.querySelector('.corr').value||0);employee_systems.push({employee:emp,break_group:group,days:[].slice.call(block.querySelectorAll('.empdayrow')).map(function(r){return{date:r.dataset.date,system:r.querySelector('select').value,breaks:dayBreakSnapshot(r,group)}}),work_from_date:block.querySelector('.pfromd').value,work_from_time:block.querySelector('.pfromt').value,work_to_date:block.querySelector('.ptod').value,work_to_time:block.querySelector('.ptot').value,pauses:collectPauses(block)})});var section=(isMontazHall()&&isSplitDeviceType($('dt').value))?selectedSections().join('/'):'';if(isMontazHall()&&isSplitDeviceType($('dt').value)&&!section){alert('Wybierz sekcję centrali dzielonej.');return}var x={id:$('eid').value?+$('eid').value:undefined,start_date:$('sd').value,end_date:$('ed').value,device_type:$('dt').value,number:$('no').value,start_time:$('stt').value,end_time:$('ett').value,day_systems:employee_systems[0]?employee_systems[0].days:[],employee_systems:employee_systems,employees:employees,corrections:corrections,notes:notesWithSection($('notes').value,section),mark_color:$('markcolor').value,additional_employees:employees.filter(function(n){return extraWorkers().indexOf(n)>=0||(D.entries||[]).some(function(old){return +old.id===+($('eid').value||0)&&entryExtraNames(old).indexOf(n)>=0})})};if(!x.start_date||!x.start_time){alert('Uzupełnij datę i godzinę rozpoczęcia');return}if((x.end_date&&!x.end_time)||(!x.end_date&&x.end_time)){alert('Uzupełnij jednocześnie datę i godzinę zakończenia');return}if(x.end_date&&x.end_date<x.start_date){alert('Błędna data zakończenia');return}if(HALL==='AUTO'&&x.employees.filter(function(n){return extraWorkers().indexOf(n)<0}).length>1){alert('Automatycy: tylko jeden stały pracownik; można dodać pomoc serwisu.');return}var manualEnds=manualParticipationEndResults(x);try{var outcome=await saveEntryWithAssignments(x);if(!outcome)return}catch(e){alert(e.message||'Nie udało się zapisać wpisu.');return}D=await api('/api/data');closeEntry();renderAll();showAssignmentResults(manualEnds.concat(outcome.finishedConflicts))}
+function participationValidationError(x){
+  var start=x.start_date+'T'+x.start_time,end=x.end_date&&x.end_time?x.end_date+'T'+x.end_time:'';
+  if(end&&end<start)return 'Koniec centrali nie może być wcześniejszy niż jej rozpoczęcie.';
+  for(var r of (x.employee_systems||[])){
+    if(!r.employee)continue;
+    var name=r.employee||'Pracownik';
+    if(!!r.work_from_date!==!!r.work_from_time||!!r.work_to_date!==!!r.work_to_time)return name+': uzupełnij datę i godzinę udziału.';
+    var a=r.work_from_date?r.work_from_date+'T'+r.work_from_time:start;
+    var b=r.work_to_date?r.work_to_date+'T'+r.work_to_time:end;
+    if(b&&b<a)return name+': koniec pracy jest wcześniejszy niż dołączenie. Jeżeli pracownik wrócił, użyj „↩ Ponownie dołącza”, aby zachować wcześniejsze godziny.';
+    for(var p of (r.pauses||[])){
+      if(!p.from_date||!p.from_time||!!p.to_date!==!!p.to_time)return name+': uzupełnij datę i godzinę wstrzymania.';
+      if(p.to_date&&p.to_date+'T'+p.to_time<p.from_date+'T'+p.from_time)return name+': koniec wstrzymania jest wcześniejszy niż jego początek.';
+    }
+  }
+  return '';
+}
+function confirmParticipationStartChanges(x){
+  var old=(D.entries||[]).find(function(e){return +e.id===+x.id});
+  if(!old)return true;
+  for(var r of (x.employee_systems||[])){
+    var before=(old.employee_systems||[]).find(function(v){return v.employee===r.employee});
+    if(!before)continue;
+    var a=(before.work_from_date||old.start_date)+'T'+(before.work_from_time||old.start_time);
+    var b=(r.work_from_date||x.start_date)+'T'+(r.work_from_time||x.start_time);
+    if(b>a&&!confirm(r.employee+': przesuwasz początek udziału z '+a.replace('T',' ')+' na '+b.replace('T',' ')+'. Wcześniejsze godziny nie będą naliczane.\nJeżeli to powrót do centrali, wybierz Anuluj i użyj „↩ Ponownie dołącza”.\nCzy świadomie chcesz zmienić początek udziału?'))return false;
+  }
+  return true;
+}
+
+async function saveEntry(){var earlyError=participationValidationError({start_date:$('sd').value,start_time:$('stt').value,end_date:$('ed').value,end_time:$('ett').value,employee_systems:currentEmployeeSystems()});if(earlyError){alert(earlyError);return}if($('ed').value&&$('ett').value&&!finishPausedEmployeesAtPause())return;var employees=[],corrections=[],employee_systems=[];document.querySelectorAll('.empblock').forEach(function(block){var emp=block.querySelector('.emp').value;if(!emp)return;var group=(block.querySelector('.breakgroup')||{}).value||'A';employees.push(emp);corrections.push(+block.querySelector('.corr').value||0);employee_systems.push({employee:emp,break_group:group,days:[].slice.call(block.querySelectorAll('.empdayrow')).map(function(r){return{date:r.dataset.date,system:r.querySelector('select').value,breaks:dayBreakSnapshot(r,group)}}),work_from_date:block.querySelector('.pfromd').value,work_from_time:block.querySelector('.pfromt').value,work_to_date:block.querySelector('.ptod').value,work_to_time:block.querySelector('.ptot').value,pauses:collectPauses(block)})});var section=(isMontazHall()&&isSplitDeviceType($('dt').value))?selectedSections().join('/'):'';if(isMontazHall()&&isSplitDeviceType($('dt').value)&&!section){alert('Wybierz sekcję centrali dzielonej.');return}var x={id:$('eid').value?+$('eid').value:undefined,start_date:$('sd').value,end_date:$('ed').value,device_type:$('dt').value,number:$('no').value,start_time:$('stt').value,end_time:$('ett').value,day_systems:employee_systems[0]?employee_systems[0].days:[],employee_systems:employee_systems,employees:employees,corrections:corrections,notes:notesWithSection($('notes').value,section),mark_color:$('markcolor').value,additional_employees:employees.filter(function(n){return extraWorkers().indexOf(n)>=0||(D.entries||[]).some(function(old){return +old.id===+($('eid').value||0)&&entryExtraNames(old).indexOf(n)>=0})})};if(!x.start_date||!x.start_time){alert('Uzupełnij datę i godzinę rozpoczęcia');return}if((x.end_date&&!x.end_time)||(!x.end_date&&x.end_time)){alert('Uzupełnij jednocześnie datę i godzinę zakończenia');return}if(x.end_date&&x.end_date<x.start_date){alert('Błędna data zakończenia');return}if(HALL==='AUTO'&&x.employees.filter(function(n){return extraWorkers().indexOf(n)<0}).length>1){alert('Automatycy: tylko jeden stały pracownik; można dodać pomoc serwisu.');return}var participationError=participationValidationError(x);if(participationError){alert(participationError);return}if(!confirmParticipationStartChanges(x))return;var manualEnds=manualParticipationEndResults(x);try{var outcome=await saveEntryWithAssignments(x);if(!outcome)return}catch(e){alert(e.message||'Nie udało się zapisać wpisu.');return}D=await api('/api/data');closeEntry();renderAll();showAssignmentResults(manualEnds.concat(outcome.finishedConflicts))}
 async function delEntry(id){
   var old=(D.entries||[]).find(function(e){return +e.id===+id});
   if(!confirm('Usunąć wpis centrali '+(old&&old.number||'')+'? Będzie można go przywrócić przyciskiem „Cofnij usunięcie”.'))return;
