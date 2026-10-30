@@ -1698,6 +1698,16 @@ function getSections(){
   var s=storedSections();
   return s.length?s:['S1','S2','S3','S4','S5','S6','S7','S8']
 }
+function entryDeviceTypeOptions(selected){
+  selected=String(selected==null?'':selected);
+  var types=visibleDeviceTypes().slice();
+  // Keep the exact stored value even if settings were renamed, removed or not saved.
+  if(selected&&types.indexOf(selected)<0)types.push(selected);
+  return '<option value=""></option>'+types.map(function(t){
+    return '<option value="'+esc(t)+'"'+(t===selected?' selected':'')+'>'+esc(t)+'</option>';
+  }).join('');
+}
+
 function visibleDeviceTypes(){
   var a=(D&&D.settings&&Array.isArray(D.settings.types)?D.settings.types:[])
     .filter(function(x){return String(x).indexOf(SECTION_PREFIX)!==0})
@@ -2792,7 +2802,7 @@ function employeeChanged(sel){var block=sel&&sel.closest?sel.closest('.empblock'
 function openEntry(id){
   var e=id?D.entries.find(function(x){return+x.id===+id}):{employees:[],corrections:[],employee_systems:[]};
   loadBundle(e);$('eid').value=id||'';$('no').value=e.number||'';$('sd').value=e.start_date||new Date().toISOString().slice(0,10);$('ed').value=e.end_date||'';
-  $('dt').innerHTML=opts(visibleDeviceTypes(),e.device_type||'');$('stt').value=e.start_time||'';$('ett').value=e.end_time||'';
+  $('dt').innerHTML=entryDeviceTypeOptions(e.device_type);$('stt').value=e.start_time||'';$('ett').value=e.end_time||'';
   $('notes').value=notesWithoutSection(e.notes||'');$('markcolor').value=e.mark_color||'';
   var savedSection=sectionFromNotes(e.notes||'');
   updateSectionVisibility(savedSection);
