@@ -1,0 +1,12 @@
+.cg-undo-modal{z-index:11000}
+.cg-undo-modal .dialog{width:min(96vw,960px);padding-bottom:20px}
+.cg-undo-modal h2{margin-top:0}
+.cg-undo-card{margin:12px 0;padding:12px;overflow:auto}
+.cg-undo-card h3{margin:0 0 10px}
+.cg-undo-table{min-width:0;width:100%;table-layout:fixed;font-size:13px}
+.cg-undo-table th,.cg-undo-table td{white-space:pre-wrap;overflow-wrap:anywhere;vertical-align:top;padding:9px}
+.cg-undo-table th:first-child{width:24%}
+.cg-undo-modal button:disabled{opacity:.6;cursor:wait}
+.cg-undo-modal [hidden]{display:none!important}
+.cg-undo-modal .entryactions{position:sticky;bottom:0;background:var(--card,#fff);padding:12px 0;margin:12px 0 0}
+@media(max-width:560px){.cg-undo-table{font-size:12px}.cg-undo-table th,.cg-undo-table td{padding:6px}.cg-undo-modal .dialog{padding:14px}.cg-undo-modal .entryactions .btn{font-size:13px}}
