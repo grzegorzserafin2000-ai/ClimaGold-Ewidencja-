@@ -1382,7 +1382,7 @@ body{background:#f3f5f7}
       <span class="dash-kpi-icon green">
         <svg viewBox="0 0 24 24"><path d="M9.2 16.4 4.8 12l-2 2 6.4 6.4L21.8 7.8l-2-2L9.2 16.4Z"/></svg>
       </span>
-      <span class="dash-kpi-copy"><span class="dash-kpi-label">ZAKOŃCZONE DZISIAJ</span><strong id="dkDoneToday">0</strong><small>Zobacz ewidencję</small></span>
+      <span class="dash-kpi-copy"><span class="dash-kpi-label">ZAKOŃCZONE DZISIAJ</span><strong id="dkDoneToday">0</strong><small>Pokaż na dashboardzie</small></span>
     </button>
 
     <button class="dash-kpi-card" onclick="dashboardShowOngoing()">
@@ -1400,6 +1400,7 @@ body{background:#f3f5f7}
       <div class="dash-entry-switch" role="group" aria-label="Zakres wpisów na dashboardzie">
         <button type="button" class="dash-entry-toggle active" data-mode="today" onclick="setDashboardEntryMode('today')">Dzisiaj</button>
         <button type="button" class="dash-entry-toggle" data-mode="all" onclick="setDashboardEntryMode('all')">Wszystkie</button>
+        <button type="button" class="dash-entry-toggle" data-mode="doneToday" onclick="setDashboardEntryMode('doneToday')">Zakończone dziś</button>
       </div>
     </div>
   </div>
@@ -2194,12 +2195,7 @@ function dashboardGoView(view){
 }
 function dashboardShowOngoing(){dashboardGoView('entries');setEntryFilter('ongoing')}
 function dashboardShowAll(){dashboardGoView('entries');setEntryFilter('all')}
-function dashboardShowToday(){
-  dashboardGoView('entries');
-  ENTRY_FILTER='all';
-  if($('entryMonth'))$('entryMonth').value=localDate(new Date()).slice(0,7);
-  syncEntryFilterButtons();renderEntries()
-}
+function dashboardShowToday(){setDashboardEntryMode('doneToday')}
 function dashElapsed(e){
   if(!e.start_date)return'—';
   var st=new Date(e.start_date+'T'+(e.start_time||'00:00')+':00');
@@ -2385,7 +2381,7 @@ async function saveDailyExceptions(){
 
 var DASH_ENTRY_MODE='today';
 function setDashboardEntryMode(mode){
-  DASH_ENTRY_MODE=mode==='all'?'all':'today';
+  DASH_ENTRY_MODE=mode==='all'?'all':mode==='doneToday'?'doneToday':'today';
   document.querySelectorAll('.dash-entry-toggle').forEach(function(btn){btn.classList.toggle('active',btn.dataset.mode===DASH_ENTRY_MODE)});
   renderDashboardTest()
 }
@@ -2405,11 +2401,11 @@ function renderDashboardTest(){
   if($('dkOngoingTitle'))$('dkOngoingTitle').textContent='('+ongoing.length+')';
   if($('dkDoneToday'))$('dkDoneToday').textContent=doneToday.length;
   if($('dkWorkers'))$('dkWorkers').textContent=Object.keys(workers).length;
-  var visible=entries.filter(function(e){return DASH_ENTRY_MODE==='all'||!e.end_date||e.start_date===today||e.end_date===today}).slice().sort(function(a,b){
+  var visible=entries.filter(function(e){return DASH_ENTRY_MODE==='doneToday'?e.end_date===today:DASH_ENTRY_MODE==='all'||!e.end_date||e.start_date===today||e.end_date===today}).slice().sort(function(a,b){
     var aa=(a.start_date||'')+' '+(a.start_time||''),bb=(b.start_date||'')+' '+(b.start_time||'');
     return aa<bb?1:aa>bb?-1:Number(b.id||0)-Number(a.id||0)
   });
-  if($('dkEntryLabel'))$('dkEntryLabel').textContent=DASH_ENTRY_MODE==='all'?'WSZYSTKIE WPISY':'DZISIEJSZE WPISY';
+  if($('dkEntryLabel'))$('dkEntryLabel').textContent=DASH_ENTRY_MODE==='doneToday'?'ZAKOŃCZONE DZISIAJ':DASH_ENTRY_MODE==='all'?'WSZYSTKIE WPISY':'DZISIEJSZE WPISY';
   if($('dkEntryCount'))$('dkEntryCount').textContent=visible.length;
   var head='<div class="dash-row head"><div>Nr centrali</div><div>Typ urządzenia</div><div>Pracownicy</div><div>Data / status</div><div>Akcja</div></div>';
   if($('dashEntryList')){
@@ -2423,7 +2419,7 @@ function renderDashboardTest(){
         '<div class="dash-cell"><b>'+esc(status)+'</b><small>'+esc(time)+'</small></div>'+
         '<button class="dash-open" onclick="openEntry('+e.id+')">Otwórz</button>'+
       '</div>'
-    }).join(''):'<div class="dash-empty">'+(DASH_ENTRY_MODE==='today'?'Brak dzisiejszych wpisów.':'Brak wpisów.')+'</div>'
+    }).join(''):'<div class="dash-empty">'+(DASH_ENTRY_MODE==='doneToday'?'Brak central zakończonych dzisiaj.':DASH_ENTRY_MODE==='today'?'Brak dzisiejszych wpisów.':'Brak wpisów.')+'</div>'
   }
 }
 
@@ -3329,7 +3325,7 @@ var refreshing=false;async function refreshData(force){
   }
 }
 var workPlanDayCheck=localDate(new Date());
-function checkWorkPlanDay(){if(!ME)return;var today=localDate(new Date());if(today===workPlanDayCheck)return;var previousDay=workPlanDayCheck;workPlanDayCheck=today;renderTodaySystemPicker();if(DASH_ENTRY_MODE==='today')renderDashboardTest();var el=$('workPlanDate');if(el&&!workPlanDirty&&(el.dataset.autoToday==='1'||el.value===previousDay)){el.value=today;el.dataset.autoToday='1';renderWorkPlan(true)}}
+function checkWorkPlanDay(){if(!ME)return;var today=localDate(new Date());if(today===workPlanDayCheck)return;var previousDay=workPlanDayCheck;workPlanDayCheck=today;renderTodaySystemPicker();if(DASH_ENTRY_MODE!=='all')renderDashboardTest();var el=$('workPlanDate');if(el&&!workPlanDirty&&(el.dataset.autoToday==='1'||el.value===previousDay)){el.value=today;el.dataset.autoToday='1';renderWorkPlan(true)}}
 setInterval(function(){if(!document.hidden){checkWorkPlanDay();refreshData(false)}},30000);
 document.addEventListener('visibilitychange',function(){if(!document.hidden){checkWorkPlanDay();refreshData(false)}});sessionStorage.removeItem(TOKEN_KEY);$('login').style.display='grid';$('app').style.display='none';
 
