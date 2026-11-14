@@ -2215,7 +2215,7 @@ function ensureDailySystems(){
 }
 function configuredSystemForDate(ds){
   var m=ensureDailySystems(),s=m[ds]||'';
-  return (D.settings.systems||[]).indexOf(s)>=0?s:''
+  return s==='Wolne / brak pracy'||(D.settings.systems||[]).indexOf(s)>=0?s:(isSaturday(new Date(ds+'T12:00:00'))?'Wolne / brak pracy':'')
 }
 function defaultSystemForDate(ds,emp){
   return (emp?employeeSystemException(ds,emp):'')||configuredSystemForDate(ds)||(D.settings.systems||[])[0]||''
@@ -2223,16 +2223,16 @@ function defaultSystemForDate(ds,emp){
 function renderTodaySystemPicker(){
   var sel=$('todaySystemSelect'),card=$('todaySystemCard'),dateEl=$('todaySystemDate'),status=$('todaySystemStatus');
   if(!sel||!card)return;
-  var today=localDate(new Date()),chosen=configuredSystemForDate(today),systems=D.settings.systems||[];
+  var today=localDate(new Date()),chosen=configuredSystemForDate(today),systems=['Wolne / brak pracy'].concat((D.settings.systems||[]).filter(function(s){return s!=='Wolne / brak pracy'}));
   if(dateEl)dateEl.textContent=today;
-  sel.innerHTML='<option value="">Wybierz system na dziś</option>'+systems.map(function(s){return'<option value="'+esc(s)+'"'+(s===chosen?' selected':'')+'>'+esc(s)+'</option>'}).join('');
+  sel.innerHTML='<option value="">Wybierz system na dziś</option>'+systems.map(function(s){return'<option value="'+esc(s)+'"'+(s===chosen?' selected':'')+'>'+(s==='Wolne / brak pracy'?'Wolne — wszyscy':esc(s))+'</option>'}).join('');
   sel.disabled=!ME||ME.role==='viewer'||!systems.length;
   card.classList.toggle('set',!!chosen);
   card.classList.toggle('missing',!chosen);
   if(status){
     if(!systems.length)status.textContent='Najpierw dodaj system pracy w Ustawieniach.';
     else if(ME&&ME.role==='viewer')status.textContent=chosen?'Ustawiony: '+chosen:'Nie ustawiono systemu na dziś.';
-    else status.textContent=chosen?'Ustawiony na dziś: '+chosen:'Wybierz system, żeby nie ustawiać go przy każdym wpisie.';
+    else status.textContent=chosen?(chosen==='Wolne / brak pracy'&&!(D.settings.daily_systems||{})[today]?'Sobota — domyślnie wolne. Nie musisz zapisywać grafiku.':'Ustawiony na dziś: '+chosen):'Wybierz system, żeby nie ustawiać go przy każdym wpisie.';
   }
 }
 async function saveTodaySystem(system){
@@ -2261,7 +2261,7 @@ function renderWorkPlan(force){
  var dateInput=$('workPlanDate'),today=localDate(new Date());
  if(dateInput&&dateInput.dataset.autoToday==='1'&&dateInput.value!==today&&!workPlanDirty){dateInput.value=today;force=true}
  var date=workPlanDate();$('workPlanDate').dataset.previous=date;var base=configuredSystemForDate(date),over=employeeDailyOverrides()[date]||{},readonly=!ME||ME.role==='viewer',extras=extraWorkers();
- $('workPlanSystem').innerHTML='<option value="">Wybierz system dla stałych pracowników</option>'+(D.settings.systems||[]).map(function(s){return '<option value="'+esc(s)+'"'+(s===base?' selected':'')+'>'+esc(s)+'</option>'}).join('');
+ $('workPlanSystem').innerHTML='<option value="">Wybierz system dla stałych pracowników</option>'+['Wolne / brak pracy'].concat((D.settings.systems||[]).filter(function(s){return s!=='Wolne / brak pracy'})).map(function(s){return '<option value="'+esc(s)+'"'+(s===base?' selected':'')+'>'+(s==='Wolne / brak pracy'?'Wolne — wszyscy':esc(s))+'</option>'}).join('');
  function row(name,extra){var value=over[name]||(extra?'Wolne / brak pracy':''),custom=value&&value!=='Wolne / brak pracy'&&(D.settings.systems||[]).indexOf(value)<0,parts=exceptionTimeParts(custom?value:base),options=workPlanOptions(custom?'__custom__':value,base);if(extra)options=options.slice(options.indexOf('</option>')+9).replace('Wolne / nieobecny','Nie pracuje');return '<tr data-employee="'+esc(name)+'" data-extra="'+(extra?'1':'0')+'"><td><b>'+esc(name)+'</b></td><td><select class="plan-choice" aria-label="System pracy: '+esc(name)+'" onchange="workPlanChanged(this)">'+options+'</select><div class="plan-custom"'+(custom?'':' hidden')+'><label>Od <input type="time" class="plan-from" value="'+esc(parts[0])+'"></label><label>Do <input type="time" class="plan-to" value="'+esc(parts[1])+'"></label></div></td></tr>'}
  var workers=allWorkers().filter(function(name){return extras.indexOf(name)<0});
  $('workPlanRows').innerHTML='<tr class="plan-group"><th colspan="2">Pracownicy stali</th></tr>'+workers.map(function(name){return row(name,false)}).join('')+(extras.length?'<tr class="plan-group"><th colspan="2">Pracownicy dodatkowi — domyślnie nie pracują</th></tr>'+extras.map(function(name){return row(name,true)}).join(''):'');
@@ -2270,7 +2270,7 @@ function renderWorkPlan(force){
  $('workPlanStatus').textContent=readonly?'Plan dnia — tylko podgląd.':'Wspólny system dotyczy stałych pracowników. Dodatkowym ustaw godziny tylko na dzień pomocy.';workPlanDirty=false
 }
 function workPlanChanged(sel){if(sel){var row=sel.closest('tr');row.querySelector('.plan-custom').hidden=sel.value!=='__custom__'}workPlanDirty=true;$('workPlanStatus').textContent='Masz niezapisane zmiany.'}
-function workPlanBaseChanged(){var base=$('workPlanSystem').value;$('workPlanRows').querySelectorAll('tr[data-extra="0"] .plan-choice').forEach(function(sel){sel.options[0].textContent='Według działu'+(base?' — '+base:'')});workPlanChanged()}
+function workPlanBaseChanged(){var base=$('workPlanSystem').value;if(base==='Wolne / brak pracy'){$('workPlanRows').querySelectorAll('tr[data-employee]').forEach(function(row){row.querySelector('.plan-choice').value='Wolne / brak pracy';row.querySelector('.plan-custom').hidden=true})}$('workPlanRows').querySelectorAll('tr[data-extra="0"] .plan-choice').forEach(function(sel){sel.options[0].textContent='Według działu'+(base?' — '+base:'')});workPlanChanged()}
 function workPlanDateChanged(){if(workPlanDirty&&!confirm('Zmienić datę i odrzucić niezapisane zmiany planu?')){$('workPlanDate').value=$('workPlanDate').dataset.previous;return}workPlanDirty=false;var el=$('workPlanDate');el.dataset.autoToday=el.value===localDate(new Date())?'1':'0';renderWorkPlan(true);$('workPlanDate').dataset.previous=workPlanDate()}
 async function saveWorkPlan(){
  if(!ME||ME.role==='viewer')return;
@@ -2280,7 +2280,7 @@ async function saveWorkPlan(){
  $('saveWorkPlan').disabled=true;$('workPlanStatus').textContent='Zapisywanie…';
  try{await api('/api/work-plan',{method:'POST',body:JSON.stringify({date:date,system:system,employees:map})});D=await api('/api/data');workPlanDirty=false;renderAll();$('workPlanStatus').textContent='Zapisano grafik na '+date+'.'}catch(e){$('workPlanStatus').textContent='Nie udało się zapisać: '+e.message}finally{$('saveWorkPlan').disabled=false}
 }
-function plannedEmployeeSystem(date,name){return employeeSystemException(date,name)||((D.settings.work_plan_dates||{})[date]?(extraWorkers().indexOf(name)>=0?'Wolne / brak pracy':configuredSystemForDate(date)):'')}
+function plannedEmployeeSystem(date,name){return employeeSystemException(date,name)||(((D.settings.work_plan_dates||{})[date]||(D.settings.daily_systems||{})[date]==='Wolne / brak pracy')?(extraWorkers().indexOf(name)>=0?'Wolne / brak pracy':configuredSystemForDate(date)):'')}
 
 function employeeDailyOverrides(){
   var map=D&&D.settings&&D.settings.employee_daily_systems;
