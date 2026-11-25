@@ -2403,7 +2403,8 @@ function renderDashboardTest(){
   if($('dkDoneToday'))$('dkDoneToday').textContent=doneToday.length;
   if($('dkWorkers'))$('dkWorkers').textContent=Object.keys(workers).length;
   var visible=entries.filter(function(e){return DASH_ENTRY_MODE==='doneToday'?e.end_date===today:DASH_ENTRY_MODE==='all'||!e.end_date||e.start_date===today||e.end_date===today}).slice().sort(function(a,b){
-    var aa=(a.start_date||'')+' '+(a.start_time||''),bb=(b.start_date||'')+' '+(b.start_time||'');
+    var dateKey=DASH_ENTRY_MODE==='doneToday'?'end_date':'start_date',timeKey=DASH_ENTRY_MODE==='doneToday'?'end_time':'start_time';
+    var aa=(a[dateKey]||'')+' '+(a[timeKey]||''),bb=(b[dateKey]||'')+' '+(b[timeKey]||'');
     return aa<bb?1:aa>bb?-1:Number(b.id||0)-Number(a.id||0)
   });
   if($('dkEntryLabel'))$('dkEntryLabel').textContent=DASH_ENTRY_MODE==='doneToday'?'ZAKOŃCZONE DZISIAJ':DASH_ENTRY_MODE==='all'?'WSZYSTKIE WPISY':'DZISIEJSZE WPISY';
@@ -2411,7 +2412,7 @@ function renderDashboardTest(){
   var head='<div class="dash-row head"><div>Nr centrali</div><div>Typ urządzenia</div><div>Pracownicy</div><div>Data / status</div><div>Akcja</div></div>';
   if($('dashEntryList')){
     $('dashEntryList').innerHTML=visible.length?head+visible.map(function(e){
-      var dateText=(e.start_date||'')+' '+(e.start_time||'');
+      var dateText=DASH_ENTRY_MODE==='doneToday'?'Zakończono: '+(e.end_date||'')+' '+(e.end_time||''):(e.start_date||'')+' '+(e.start_time||'');
       var status=entryStatusText(e),time=e.end_date?timeSummary(e):(entryIsStopped(e)?'':dashElapsed(e));
       return'<div class="dash-row">'+
         '<div class="dash-cell"><b>'+esc(e.number||'Bez numeru')+'</b><small>'+esc(dateText)+'</small></div>'+
