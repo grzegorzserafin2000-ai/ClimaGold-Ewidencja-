@@ -1375,7 +1375,7 @@ body{background:#f3f5f7}
       <span class="dash-kpi-icon orange">
         <svg viewBox="0 0 24 24"><path d="M21.7 5.3a5.8 5.8 0 0 1-7.4 7L7.1 19.5a2 2 0 1 1-2.8-2.8l7.2-7.2a5.8 5.8 0 0 1 7-7.4L15.1 5.5l2.5 2.5 4.1-2.7Z"/></svg>
       </span>
-      <span class="dash-kpi-copy"><span class="dash-kpi-label">W TOKU</span><strong id="dkOngoing">0</strong><small>Przejdź do ewidencji</small></span>
+      <span class="dash-kpi-copy"><span class="dash-kpi-label">W TOKU</span><strong id="dkOngoing">0</strong><small>Pokaż na dashboardzie</small></span>
     </button>
 
     <button class="dash-kpi-card" onclick="dashboardShowToday()">
@@ -1400,6 +1400,7 @@ body{background:#f3f5f7}
       <div class="dash-entry-switch" role="group" aria-label="Zakres wpisów na dashboardzie">
         <button type="button" class="dash-entry-toggle active" data-mode="today" onclick="setDashboardEntryMode('today')">Dzisiaj</button>
         <button type="button" class="dash-entry-toggle" data-mode="all" onclick="setDashboardEntryMode('all')">Wszystkie</button>
+        <button type="button" class="dash-entry-toggle" data-mode="ongoing" onclick="setDashboardEntryMode('ongoing')">W toku</button>
         <button type="button" class="dash-entry-toggle" data-mode="doneToday" onclick="setDashboardEntryMode('doneToday')">Zakończone dziś</button>
       </div>
     </div>
@@ -2194,7 +2195,7 @@ function dashboardGoView(view){
   var b=document.querySelector('.nav button[data-v="'+view+'"]');
   if(b)b.click()
 }
-function dashboardShowOngoing(){dashboardGoView('entries');setEntryFilter('ongoing')}
+function dashboardShowOngoing(){setDashboardEntryMode('ongoing')}
 function dashboardShowAll(){dashboardGoView('entries');setEntryFilter('all')}
 function dashboardShowToday(){setDashboardEntryMode('doneToday')}
 function dashElapsed(e){
@@ -2382,7 +2383,7 @@ async function saveDailyExceptions(){
 
 var DASH_ENTRY_MODE='today';
 function setDashboardEntryMode(mode){
-  DASH_ENTRY_MODE=mode==='all'?'all':mode==='doneToday'?'doneToday':'today';
+  DASH_ENTRY_MODE=mode==='ongoing'?'ongoing':mode==='all'?'all':mode==='doneToday'?'doneToday':'today';
   document.querySelectorAll('.dash-entry-toggle').forEach(function(btn){btn.classList.toggle('active',btn.dataset.mode===DASH_ENTRY_MODE)});
   renderDashboardTest()
 }
@@ -2402,12 +2403,12 @@ function renderDashboardTest(){
   if($('dkOngoingTitle'))$('dkOngoingTitle').textContent='('+ongoing.length+')';
   if($('dkDoneToday'))$('dkDoneToday').textContent=doneToday.length;
   if($('dkWorkers'))$('dkWorkers').textContent=Object.keys(workers).length;
-  var visible=entries.filter(function(e){return DASH_ENTRY_MODE==='doneToday'?e.end_date===today:DASH_ENTRY_MODE==='all'||!e.end_date||e.start_date===today||e.end_date===today}).slice().sort(function(a,b){
+  var visible=entries.filter(function(e){return DASH_ENTRY_MODE==='ongoing'?!e.end_date&&!entryIsStopped(e):DASH_ENTRY_MODE==='doneToday'?e.end_date===today:DASH_ENTRY_MODE==='all'||!e.end_date||e.start_date===today||e.end_date===today}).slice().sort(function(a,b){
     var dateKey=DASH_ENTRY_MODE==='doneToday'?'end_date':'start_date',timeKey=DASH_ENTRY_MODE==='doneToday'?'end_time':'start_time';
     var aa=(a[dateKey]||'')+' '+(a[timeKey]||''),bb=(b[dateKey]||'')+' '+(b[timeKey]||'');
     return aa<bb?1:aa>bb?-1:Number(b.id||0)-Number(a.id||0)
   });
-  if($('dkEntryLabel'))$('dkEntryLabel').textContent=DASH_ENTRY_MODE==='doneToday'?'ZAKOŃCZONE DZISIAJ':DASH_ENTRY_MODE==='all'?'WSZYSTKIE WPISY':'DZISIEJSZE WPISY';
+  if($('dkEntryLabel'))$('dkEntryLabel').textContent=DASH_ENTRY_MODE==='ongoing'?'W TOKU':DASH_ENTRY_MODE==='doneToday'?'ZAKOŃCZONE DZISIAJ':DASH_ENTRY_MODE==='all'?'WSZYSTKIE WPISY':'DZISIEJSZE WPISY';
   if($('dkEntryCount'))$('dkEntryCount').textContent=visible.length;
   var head='<div class="dash-row head"><div>Nr centrali</div><div>Typ urządzenia</div><div>Pracownicy</div><div>Data / status</div><div>Akcja</div></div>';
   if($('dashEntryList')){
@@ -2421,7 +2422,7 @@ function renderDashboardTest(){
         '<div class="dash-cell"><b>'+esc(status)+'</b><small>'+esc(time)+'</small></div>'+
         '<button class="dash-open" onclick="openEntry('+e.id+')">Otwórz</button>'+
       '</div>'
-    }).join(''):'<div class="dash-empty">'+(DASH_ENTRY_MODE==='doneToday'?'Brak central zakończonych dzisiaj.':DASH_ENTRY_MODE==='today'?'Brak dzisiejszych wpisów.':'Brak wpisów.')+'</div>'
+    }).join(''):'<div class="dash-empty">'+(DASH_ENTRY_MODE==='ongoing'?'Brak central w toku.':DASH_ENTRY_MODE==='doneToday'?'Brak central zakończonych dzisiaj.':DASH_ENTRY_MODE==='today'?'Brak dzisiejszych wpisów.':'Brak wpisów.')+'</div>'
   }
 }
 
